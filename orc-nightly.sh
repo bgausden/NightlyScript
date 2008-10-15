@@ -1,6 +1,4 @@
 #!/bin/sh 
-# Script to download and install nightly/experimental Orc builds.
-# Intended to be called from cron. 
 
 PATH=/bin:/usr/bin:/usr/local/bin:/opt/sfw/bin
 export PATH
@@ -197,7 +195,7 @@ CMD="${SUDO} ${RSYNC} -rlptvzuc ${DELETE_FILES} ${SSH_IDENTITY} ${EXCLUDE_LIST} 
 eval ${CMD}
 TRANSFER_RESULT=$?
 
-if [ ${TRANSFER_RESULT} -eq 0 ] ; then
+#if [ ${TRANSFER_RESULT} -eq 0 ] ; then
 	if [ ${ORC_USER_EXISTS} -eq 0 ] ; then
     	${ECHO}
     	${ECHO} "Changing owner and permissions of new Orc"
@@ -208,13 +206,16 @@ if [ ${TRANSFER_RESULT} -eq 0 ] ; then
     ${ECHO} "Successfully installed "${BUILD_DESC}" build"
     ${ECHO} ".." | ${MAIL} -s "${BUILD_DESC} has been installed on "`uname -n` barry@orcsoftware.com
     ${ECHO}
-else
+#else
+case ${TRANSFER_RESULT} in
+0)	;;
+23)
+	${ECHO}
+        ${ECHO} "rsync reported \"nothing to transfer\"\c"
+	;;
+*)
     ${ECHO}
-    ${ECHO} "rsync retrieval of "${BUILD_DESC}" may have failed. Please check the script output. \c"
-    if [ ${TRANSFER_RESULT} -eq 23 ] ; then
-        ${ECHO} "(nothing to transfer)\c"
-    fi
-    ${ECHO} "."
+    ${ECHO} "rsync retrieval of "${BUILD_DESC}" reported errors. Please re-run and check the script output. \c"
 fi
 
 exit 0

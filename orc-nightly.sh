@@ -27,7 +27,7 @@ else
 	SUDO=""
 fi
 
-SOURCE_HOST=linuxdev1 #Default server to download from
+DEFAULT_SOURCE_HOST=linuxdev1 #Default server to download from
 ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.
 DEFAULT_BUILD="7.1" # What to download if the user doesn't explictly choose a build to retrieve
 
@@ -49,7 +49,6 @@ get_build()
 {
     while
         ${ECHO}
-        #${ECHO} "Download which build - 6.1, 7.1, (H)EAD or (Q)uit? <${DEFAULT_BUILD}> \c"
         read -p "Download which build - 6.1, 7.1, (H)EAD or (Q)uit? <${DEFAULT_BUILD}> " -e BUILD
         [ -z ${BUILD} ] && BUILD=${DEFAULT_BUILD}
         # grep for an acceptable response and convert to uppercase using tr(anslate)
@@ -88,11 +87,10 @@ get_delete()
 
 get_source_host()
 {
-	SOURCE_HOST=linuxdev1
 	${ECHO}
-	${ECHO} "Sync with which server <"${SOURCE_HOST}"> \c"
+	${ECHO} "Sync with which server <"${DEFAULT_SOURCE_HOST}"> \c"
 	read SOURCE_HOST
-	[ -z ${SOURCE_HOST} ] && SOURCE_HOST=linuxdev1
+	[ -z ${SOURCE_HOST} ] && SOURCE_HOST=${DEFAULT_SOURCE_HOST}
 }
 
 

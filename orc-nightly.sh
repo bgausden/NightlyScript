@@ -163,8 +163,8 @@ check_destination()
 {
     if [ ! -d ${DEST_DIR} ] ; then
         ${ECHO}
-        ${ECHO} "Unable to continue. Destination directory (${DEST_DIR}) does not exist."
-        exit
+        ${ECHO} "Destination directory (${DEST_DIR}) does not exist, creating."
+				mkdir -p ${DEST_DIR} > /dev/null || fatal_exit "Unable to create ${DEST_DIR}"
     fi
 }
 
@@ -178,6 +178,14 @@ set_exclude_list()
 	fi
 }
 
+fatal_exit()
+{
+	${ECHO}
+	[ -n $1 ] && ${ECHO} ${1}
+	exit 1
+}
+
+# main()
 get_build
 if [ ${BUILD} = "Q" -o ${BUILD} = "q" ] ; then 
     exit
@@ -188,34 +196,44 @@ set_path
 check_destination
 set_exclude_list
 
-cd $DEST_DIR
 ${ECHO}
 ${ECHO} "Retrieving "$BUILD_DESC" build from "$SOURCE_HOST
-CMD="${SUDO} ${RSYNC} -rlptvzuc ${DELETE_FILES} ${SSH_IDENTITY} ${EXCLUDE_LIST} ${SSH_LOGIN}${SOURCE_HOST}":\'"${SOURCE}"\'" ."
+
+# rsync flags are 
+# -r	recurse into directories
+# -l	copy symlinks as symlinks
+# -p	preserve permissions
+# -t	preserve times
+# -v	increase verbosity
+# -z	compress file data during the transfer
+# -u	(update) skip files that are newer on the receiver
+# -c	(checksum) skip based on checksum, not mod-time & size
+# ${DELETE_FILES} (--delete) delete extraneous files from dest dirs
+CMD="${SUDO} ${RSYNC} -rlptvzuc ${DELETE_FILES} ${EXCLUDE_LIST} ${SSH_LOGIN}@${SOURCE_HOST}:\'"${SOURCE}"\' ${DEST_DIR}"
 eval ${CMD}
 TRANSFER_RESULT=$?
 
-#if [ ${TRANSFER_RESULT} -eq 0 ] ; then
-	if [ ${ORC_USER_EXISTS} -eq 0 ] ; then
-    	${ECHO}
-    	${ECHO} "Changing owner and permissions of new Orc"
-    	cd $DEST_DIR/..
-    	sudo /usr/bin/chown -R orc:orc ${DEST_DIR}
-	fi
-    ${ECHO}
-    ${ECHO} "Successfully installed "${BUILD_DESC}" build"
-    ${ECHO} ".." | ${MAIL} -s "${BUILD_DESC} has been installed on "`uname -n` barry@orcsoftware.com
-    ${ECHO}
-#else
-case ${TRANSFER_RESULT} in
-0)	;;
-23)
+if [ ${ORC_USER_EXISTS} -eq 0 ] ; then
 	${ECHO}
-        ${ECHO} "rsync reported \"nothing to transfer\"\c"
-	;;
-*)
-    ${ECHO}
-    ${ECHO} "rsync retrieval of "${BUILD_DESC}" reported errors. Please re-run and check the script output. \c"
+	${ECHO} "Changing owner and permissions of new Orc"
+	cd $DEST_DIR/..
+	sudo /usr/bin/chown -R orc:orc ${DEST_DIR}
 fi
+${ECHO}
+${ECHO} "Successfully installed "${BUILD_DESC}" build"
+${ECHO} ".." | ${MAIL} -s "${BUILD_DESC} has been installed on "`uname -n` barry@orcsoftware.com
+${ECHO}
+
+case ${TRANSFER_RESULT} in
+	0)	;;
+	23)
+	${ECHO}
+	${ECHO} "rsync reported \"nothing to transfer\"\c"
+	;;
+	*)
+	${ECHO}
+	${ECHO} "rsync retrieval of "${BUILD_DESC}" reported errors. Please re-run and check the script output. \c"
+	;;
+esac
 
 exit 0

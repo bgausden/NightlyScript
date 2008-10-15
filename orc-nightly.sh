@@ -1,102 +1,68 @@
 #!/bin/sh 
 
-PATH=/bin:/usr/bin:/usr/local/bin:/opt/sfw/bin
-export PATH
-id "orc" > /dev/null 2>&1
-if [ $? -eq 0 ] ; then	
-	ORC_USER_EXISTS=0
-	SSH_LOGIN="orc@"
-	SSH_IDENTITY="-i /etc/orc/.ssh/id_dsa"	
-	SUDO="sudo"
-else
-	ORC_USER_EXISTS=1
-	SSH_LOGIN=""
-	SSH_IDENTITY=""
-	SUDO=""
-fi
-SOURCE_HOST=linuxdev1
-ROOT_DIR="/pub/static/common/applications/orc"
-BUILD="NIGHTLY"
-BUILD_TYPE="nightly"
+# Script to retrieve orc nightly builds via ssh/rsync
+
 if [ `uname -s`_ = "Linux_" ] ; then
 	ECHO="/bin/echo -e"
-	MAIL=`which mail`
 else
-	# Solaris and Darwin have mailx as standard
-	ECHO=/bin/echo
-	MAIL=`which mailx`
+	ECHO="/bin/echo"
 fi
-# Only Orc.app and Sauron.app if on a Mac
-#if [ `uname -s`_ = "Darwin_" ] ; then
-	MAC_APPS_ONLY=0
-#else
-#	MAC_APPS_ONLY=1
-#fi
-# **OBSOLETE** As a general rule we'll be downloading something compiled yesterday
-#DAY=`date +%d`
-#DAY=`expr ${DAY} - 1`
-#if [ `${ECHO} "${DAY}\c" | wc -c` -eq 1 ] ; then
-#	DAY="0"${DAY}
-#fi
-#BUILD_DATE=`date +%Y-%m`"-"${DAY}
-#BUILD_DATE=`date +%Y-%m-%d`
-RSYNC=`which rsync`
-APPS_ONLY="yes"
-EXCLUDE_LIST=""
 
-check_id()
+fatal_exit()
 {
-    id | egrep '\(orc\).*\(.*\)' > /dev/null 2>&1
-    if [ ! $? -eq 0 ] ; then
-        # Not running this as orc - abort
-        ${ECHO}
-        ${ECHO} "This script must be run as the \"orc\" user. Aborting"
-        exit
-    fi
+	${ECHO}
+	[ -n "${1}" ] && ${ECHO} ${1}". Aborting"
+	exit 1
 }
+
+PATH=/usr/sbin:/bin:/usr/bin:/usr/local/bin:/opt/sfw/bin
+export PATH
+
+id "orc" > /dev/null 2>&1
+if [ $? -eq 0 ] ; then	
+	SSH_LOGIN="orc"
+	SUDO="sudo"
+else
+	SSH_LOGIN=${USER}
+	SUDO=""
+fi
+
+SOURCE_HOST=linuxdev1 #Default server to download from
+ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.
+DEFAULT_BUILD="7.1" # What to download if the user doesn't explictly choose a build to retrieve
+
+# Only Orc.app and Sauron.app if on a Mac
+if [ `uname -s`_ = "Darwin_" ] ; then
+	MAC_APPS_ONLY=0
+else
+	MAC_APPS_ONLY=1
+fi
+
+RSYNC=`which rsync` 
+[ -z ${RSYNC} ] && fatal_exit "Unable to locate rsync"
+CHOWN=`which chown` 
+[ -z ${CHOWN} ] && fatal_exit "Unable to locate chown"
+
+EXCLUDE_LIST=""
 
 get_build()
 {
     while
         ${ECHO}
-        ${ECHO} "Download which build - 6.1, 7.1, (H)EAD or (Q)uit? <7.1> \c"
-        read BUILD
-        if [ ${BUILD}_ = "_" ] ; then
-            BUILD="7.1"
-         fi
+        #${ECHO} "Download which build - 6.1, 7.1, (H)EAD or (Q)uit? <${DEFAULT_BUILD}> \c"
+        read -p "Download which build - 6.1, 7.1, (H)EAD or (Q)uit? <${DEFAULT_BUILD}> " -e BUILD
+        [ -z ${BUILD} ] && BUILD=${DEFAULT_BUILD}
         # grep for an acceptable response and convert to uppercase using tr(anslate)
-        BUILD=`${ECHO} ${BUILD} | egrep '6\.1|7\.1|[Hh]|[Qq]' | tr '[:lower:]' '[:upper:]'`
+        BUILD=`${ECHO} ${BUILD} | egrep '7\.1|8\.0|9\.0|[Hh]|[Qq]' | tr '[:lower:]' '[:upper:]'`
         # if $BUILD is non-null, then test returns 1 and we exit the while loop
-        test ${BUILD}"_" = "_"
+        #test ${BUILD}"_" = "_"
+				[ -z ${BUILD} ]
     do
         ${ECHO} ""
     done
     if [ ${BUILD} = "H" ] ; then
         BUILD="HEAD"
     fi
-}
-
-get_build_date()
-{
-	SANE_DATE="yes"
-	BUILD_DATE_TEMP=${BUILD_DATE}
-	while
-		${ECHO} 
-		${ECHO} "Build from which date? <"${BUILD_DATE}"> \c" 
-		read BUILD_DATE_TEMP 
-		${ECHO} $BUILD_DATE_TEMP"_" | egrep '2004-(0[1-9]|1[0-2])-([0-2][1-9]|3[01])_|_' > /dev/null 2>&1
-		if [ ! $? ] ; then
-			SANE_DATE="no"
-		else
-			if [ ! ${BUILD_DATE_TEMP}_ = "_" ] ; then
-				BUILD_DATE=${BUILD_DATE_TEMP}
-			fi
-		fi
-		# This test is what continues or exits the while loop...
-		test ${SANE_DATE} = "no"
-	do
-		${ECHO} ""
-	done
 }
 
 get_delete()
@@ -209,14 +175,18 @@ ${ECHO} "Retrieving "$BUILD_DESC" build from "$SOURCE_HOST
 # -u	(update) skip files that are newer on the receiver
 # -c	(checksum) skip based on checksum, not mod-time & size
 # ${DELETE_FILES} (--delete) delete extraneous files from dest dirs
-CMD="${SUDO} ${RSYNC} -rlptvzuc ${DELETE_FILES} ${EXCLUDE_LIST} ${SSH_LOGIN}@${SOURCE_HOST}:\'"${SOURCE}"\' ${DEST_DIR}"
+#cd ${DEST_DIR}
+CMD="${SUDO} ${RSYNC} -rlptzuc --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SSH_LOGIN}@${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
 eval ${CMD}
 TRANSFER_RESULT=$?
 
+if [ ! ${MAC_APPS_ONLY} ] ; then #On a Mac/PC there's no Orc user
 	${ECHO}
 	${ECHO} "Changing owner and permissions of new Orc"
 	cd $DEST_DIR/..
-	sudo /usr/bin/chown -R orc:orc ${DEST_DIR}
+	CMD="${CHOWN} -R orc:orc ${DEST_DIR}"
+	sudo ${CMD} || fatal_exit "Unable to update owner & group of ${DEST_DIR} - please check that you are in sudoers and manually update the owner & group of ${DEST_DIR}"
+fi
 	
 
 case ${TRANSFER_RESULT} in

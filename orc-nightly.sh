@@ -213,27 +213,28 @@ CMD="${SUDO} ${RSYNC} -rlptvzuc ${DELETE_FILES} ${EXCLUDE_LIST} ${SSH_LOGIN}@${S
 eval ${CMD}
 TRANSFER_RESULT=$?
 
-if [ ${ORC_USER_EXISTS} -eq 0 ] ; then
 	${ECHO}
 	${ECHO} "Changing owner and permissions of new Orc"
 	cd $DEST_DIR/..
 	sudo /usr/bin/chown -R orc:orc ${DEST_DIR}
-fi
-${ECHO}
-${ECHO} "Successfully installed "${BUILD_DESC}" build"
-${ECHO} ".." | ${MAIL} -s "${BUILD_DESC} has been installed on "`uname -n` barry@orcsoftware.com
-${ECHO}
+	
 
 case ${TRANSFER_RESULT} in
-	0)	;;
+	0)	
+	${ECHO}
+	${ECHO} "Successfully installed "${BUILD_DESC}" build"
+	;;
+
 	23)
 	${ECHO}
 	${ECHO} "rsync reported \"nothing to transfer\"\c"
 	;;
+
 	*)
 	${ECHO}
 	${ECHO} "rsync retrieval of "${BUILD_DESC}" reported errors. Please re-run and check the script output. \c"
 	;;
+
 esac
 
 exit 0

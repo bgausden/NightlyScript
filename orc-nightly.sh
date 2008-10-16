@@ -30,7 +30,7 @@ fi
 DEFAULT_SOURCE_HOST=linuxdev1 #Default server to download from
 ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.
 DEFAULT_BUILD="7.1" # What to download if the user doesn't explictly choose a build to retrieve
-DEFAULT_LATEST_SUCCESS="latest" # Download last available (irrespective of whether a complete build) or the last known successful build
+DEFAULT_LATEST_SUCCESS="L" # Download last available (irrespective of whether a complete build) or the last known successful build
 
 # Only Orc.app and Sauron.app if on a Mac
 if [ `uname -s`_ = "Darwin_" ] ; then
@@ -100,11 +100,12 @@ get_latest_or_success()
         ${ECHO} "Download (L)atest available build or last (S)uccessful build <${DEFAULT_LATEST_SUCCESS}> \c"   
         read LATEST_OR_SUCCESS
 				case ${LATEST_OR_SUCCESS} in
-					Ss)
-					LATEST_OR_SUCCESS=success
+					S|s)
+					LATEST_OR_SUCCESS=S
 					;;
-					Ll)
-					LATEST_OR_SUCCESS=latest
+					L|l)
+					LATEST_OR_SUCCESS=L
+					;;
 					*)
 					LATEST_OR_SUCCESS=${DEFAULT_LATEST_SUCCESS}
 					;;
@@ -113,40 +114,33 @@ get_latest_or_success()
 
 
 set_path()
-# Stripped out the rolling build support completely as unused.
 {
-	case ${BUILD} in
-		6.1)
-			ROOT_DIR="/pub/builds/nightly/Orc-6-1/success/release/orc"
-			BUILD_DESC="Nightly 6.1"
-			DEST_DIR="/orcreleases/orc-6.1"
-		;;
-		7.1)
-			ROOT_DIR="/pub/builds/nightly/Orc-7-1/success/release/orc"
-			BUILD_DESC="Nightly 7.1"
-			DEST_DIR="/orcreleases/orc-7.1"
-		;;
-		HEAD)
-			ROOT_DIR="/pub/builds/nightly/HEAD/success/release/orc"
-			BUILD_DESC="Nightly HEAD"
-			DEST_DIR="/orcreleases/orc-HEAD"
-		;;
-	esac
-	SANE_ANSWER="yes"
+	if [ ${LATEST_OR_SUCCESS}=L ] ; then
+		L_OR_S="latest"
+	else
+		L_OR_S="success"
+	fi
+	if [ ${BUILD}=HEAD ] ; then
+		ROOT_DIR="/pub/builds/nightly/${BUILD}/${L_OR_S}/release/orc"
+	else
+		ROOT_DIR="/pub/builds/nightly/Orc-${BUILD/\./-}/${L_OR_S}/release/orc" # Need to change (e.g.) Orc-7.1 to Orc-7-1 to suit the dir structure in Sthlm.
+	fi
+	BUILD_DESC="Nightly ${BUILD}"
+	DEST_DIR="/orcreleases/orc-${BUILD}"
 	SOURCE=${ROOT_DIR}
 	if [ ${MAC} -eq 0 ] ; then
 		DEST_DIR="/Applications/Orc-"${BUILD}
 		SOURCE="	${SOURCE}/apps/Orc.app \
-							${SOURCE}/apps/Sauron.app \
-							${SOURCE}/lib/liquidator.jar \
-							${SOURCE}/lib/lprofiler.jar \
-							${SOURCE}/apps/Documentation/OrcTraderManual.pdf \
-							${SOURCE}/apps/Documentation/ReleaseNotes.pdf \
-							${SOURCE}/apps/Documentation/MarketLinks.pdf \
-							${SOURCE}/doc \
-							${SOURCE}/sdk/liquidator/Documentation \
-							${SOURCE}/sdk/liquidator/Examples \
-							${SOURCE}/sdk/op "
+		${SOURCE}/apps/Sauron.app \
+		${SOURCE}/lib/liquidator.jar \
+		${SOURCE}/lib/lprofiler.jar \
+		${SOURCE}/apps/Documentation/OrcTraderManual.pdf \
+		${SOURCE}/apps/Documentation/ReleaseNotes.pdf \
+		${SOURCE}/apps/Documentation/MarketLinks.pdf \
+		${SOURCE}/doc \
+		${SOURCE}/sdk/liquidator/Documentation \
+		${SOURCE}/sdk/liquidator/Examples \
+		${SOURCE}/sdk/op "
 	fi
 	BUILD_DESC="last successful "${BUILD_DESC}
 }

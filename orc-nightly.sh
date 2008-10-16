@@ -118,7 +118,17 @@ set_path()
 	SOURCE=${ROOT_DIR}
 	if [ ${MAC} -eq 0 ] ; then
 		DEST_DIR="/Applications/Orc-"${BUILD}
-		SOURCE="${SOURCE}/apps/Orc.app ${SOURCE}/apps/Sauron.app ${SOURCE}/lib/liquidator.jar ${SOURCE}/lib/lprofiler.jar ${SOURCE}/apps/Documentation/OrcTraderManual.pdf ${SOURCE}/apps/Documentation/ReleaseNotes.pdf ${SOURCE}/apps/Documentation/MarketLinks.pdf ${SOURCE}/doc ${SOURCE}/sdk/liquidator/Documentation ${SOURCE}/sdk/liquidator/Examples ${SOURCE}/sdk/op"
+		SOURCE="	${SOURCE}/apps/Orc.app \
+							${SOURCE}/apps/Sauron.app \
+							${SOURCE}/lib/liquidator.jar \
+							${SOURCE}/lib/lprofiler.jar \
+							${SOURCE}/apps/Documentation/OrcTraderManual.pdf \
+							${SOURCE}/apps/Documentation/ReleaseNotes.pdf \
+							${SOURCE}/apps/Documentation/MarketLinks.pdf \
+							${SOURCE}/doc \
+							${SOURCE}/sdk/liquidator/Documentation \
+							${SOURCE}/sdk/liquidator/Examples \
+							${SOURCE}/sdk/op "
 	fi
 	BUILD_DESC="last successful "${BUILD_DESC}
 }

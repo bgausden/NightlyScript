@@ -30,6 +30,7 @@ fi
 DEFAULT_SOURCE_HOST=linuxdev1 #Default server to download from
 ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.
 DEFAULT_BUILD="7.1" # What to download if the user doesn't explictly choose a build to retrieve
+DEFAULT_LATEST_SUCCESS="latest" # Download last available (irrespective of whether a complete build) or the last known successful build
 
 # Only Orc.app and Sauron.app if on a Mac
 if [ `uname -s`_ = "Darwin_" ] ; then
@@ -91,6 +92,23 @@ get_source_host()
 	${ECHO} "Sync with which server <"${DEFAULT_SOURCE_HOST}"> \c"
 	read SOURCE_HOST
 	[ -z ${SOURCE_HOST} ] && SOURCE_HOST=${DEFAULT_SOURCE_HOST}
+}
+
+get_latest_or_success()
+{
+        ${ECHO}
+        ${ECHO} "Download (L)atest available build or last (S)uccessful build <${DEFAULT_LATEST_SUCCESS}> \c"   
+        read LATEST_OR_SUCCESS
+				case ${LATEST_OR_SUCCESS} in
+					Ss)
+					LATEST_OR_SUCCESS=success
+					;;
+					Ll)
+					LATEST_OR_SUCCESS=latest
+					*)
+					LATEST_OR_SUCCESS=${DEFAULT_LATEST_SUCCESS}
+					;;
+				esac
 }
 
 
@@ -166,6 +184,7 @@ if [ ${BUILD} = "Q" -o ${BUILD} = "q" ] ; then
 fi
 get_source_host
 get_delete
+get_latest_or_success
 set_path
 check_destination
 set_exclude_list

@@ -33,9 +33,9 @@ DEFAULT_BUILD="7.1" # What to download if the user doesn't explictly choose a bu
 
 # Only Orc.app and Sauron.app if on a Mac
 if [ `uname -s`_ = "Darwin_" ] ; then
-	MAC_APPS_ONLY=0
+	MAC=0
 else
-	MAC_APPS_ONLY=1
+	MAC=1
 fi
 
 RSYNC=`which rsync` 
@@ -116,7 +116,7 @@ set_path()
 	esac
 	SANE_ANSWER="yes"
 	SOURCE=${ROOT_DIR}
-	if [ ${MAC_APPS_ONLY} -eq 0 ] ; then
+	if [ ${MAC} -eq 0 ] ; then
 		DEST_DIR="/Applications/Orc-"${BUILD}
 		SOURCE="${SOURCE}/apps/Orc.app ${SOURCE}/apps/Sauron.app ${SOURCE}/lib/liquidator.jar ${SOURCE}/lib/lprofiler.jar ${SOURCE}/apps/Documentation/OrcTraderManual.pdf ${SOURCE}/apps/Documentation/ReleaseNotes.pdf ${SOURCE}/apps/Documentation/MarketLinks.pdf ${SOURCE}/doc ${SOURCE}/sdk/liquidator/Documentation ${SOURCE}/sdk/liquidator/Examples ${SOURCE}/sdk/op"
 	fi
@@ -137,7 +137,7 @@ set_exclude_list()
 	EXCLUDE_LIST="--exclude=\*/CVS/ --exclude=arch/i386-pc-cygwin/ --exclude=i386-unknown-linux"
 	EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*apple-darwin/ --exclude=\*sparc\* --exclude=\*-gcc\* --exclude=x86_64-sun-solaris/"
 	EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=x86_64-unknown-linux-gcc --exclude=apps/httpd\*"
-	if [ ${MAC_APPS_ONLY} -eq 0 ] ; then
+	if [ ${MAC} -eq 0 ] ; then
 		EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*.dll --exclude=\*.exe"
 	fi
 }
@@ -173,19 +173,18 @@ ${ECHO} "Retrieving "$BUILD_DESC" build from "$SOURCE_HOST
 # -u	(update) skip files that are newer on the receiver
 # -c	(checksum) skip based on checksum, not mod-time & size
 # ${DELETE_FILES} (--delete) delete extraneous files from dest dirs
-#cd ${DEST_DIR}
+# Note also that all the escaped quotes around the -e option and the :$SOURCE are mandatory - don't be tempted to remove them.
 CMD="${SUDO} ${RSYNC} -rlptzuc --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SSH_LOGIN}@${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
 eval ${CMD}
 TRANSFER_RESULT=$?
 
-if [ ! ${MAC_APPS_ONLY} ] ; then #On a Mac/PC there's no Orc user
+if [ ! ${MAC} ] ; then #On a Mac/PC there's no Orc user
 	${ECHO}
 	${ECHO} "Changing owner and permissions of new Orc"
 	cd $DEST_DIR/..
 	CMD="${CHOWN} -R orc:orc ${DEST_DIR}"
 	sudo ${CMD} || fatal_exit "Unable to update owner & group of ${DEST_DIR} - please check that you are in sudoers and manually update the owner & group of ${DEST_DIR}"
 fi
-	
 
 case ${TRANSFER_RESULT} in
 	0)	

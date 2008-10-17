@@ -32,6 +32,8 @@ ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source
 DEFAULT_BUILD="7.1" # What to download if the user doesn't explictly choose a build to retrieve
 DEFAULT_LATEST_SUCCESS="L" # Download last available (irrespective of whether a complete build) or the last known successful build
 
+#TODO Add ARCH and then update exclude lists based on ARCH
+
 # Only Orc.app and Sauron.app if on a Mac
 if [ `uname -s`_ = "Darwin_" ] ; then
 	MAC=0
@@ -120,7 +122,7 @@ set_path()
 	else
 		L_OR_S="success"
 	fi
-	if [ ${BUILD}=HEAD ] ; then
+	if [ ${BUILD} = "HEAD" ] ; then
 		ROOT_DIR="/pub/builds/nightly/${BUILD}/${L_OR_S}/release/orc"
 	else
 		ROOT_DIR="/pub/builds/nightly/Orc-${BUILD/\./-}/${L_OR_S}/release/orc" # Need to change (e.g.) Orc-7.1 to Orc-7-1 to suit the dir structure in Sthlm.
@@ -156,9 +158,15 @@ check_destination()
 
 set_exclude_list()
 {
-	EXCLUDE_LIST="--exclude=\*/CVS/ --exclude=arch/i386-pc-cygwin/ --exclude=i386-unknown-linux"
-	EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*apple-darwin/ --exclude=\*sparc\* --exclude=\*-gcc\* --exclude=x86_64-sun-solaris/"
-	EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=x86_64-unknown-linux-gcc --exclude=apps/httpd\*"
+	EXCLUDE_LIST="--exclude=\*/CVS/
+								--exclude=arch/i386-pc-cygwin/
+								--exclude=i386-unknown-linux
+								--exclude=\*apple-darwin/
+								--exclude=\*sparc\*
+								--exclude=\*-gcc\*
+								--exclude=x86_64-sun-solaris/
+								--exclude=x86_64-unknown-linux-gcc
+								--exclude=apps/httpd\*"
 	if [ ${MAC} -eq 0 ] ; then
 		EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*.dll --exclude=\*.exe"
 	fi

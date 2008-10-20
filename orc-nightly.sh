@@ -2,7 +2,24 @@
 
 # Script to retrieve orc nightly builds via ssh/rsync
 
-if [ `uname -s`_ = "Linux_" ] ; then
+
+#[ -n "${VAR+x}" ] ## Fails if VAR is unset
+#
+#[ -n "${VAR:+x}" ] ## Fails if VAR is unset or empty
+#
+#[ -n "${VAR-x}" ] ## Succeeds if VAR is unset
+#
+#[ -n "${VAR:-x}" ] ## Succeeds if VAR is unset or empty
+
+# Known systems - need to add new platforms to this list as needed e.g. if we support Power4 going forwards
+DARWIN="DARWIN"
+SUNOS="SUNOS"
+LINUX="LINUX"
+
+SYSTEM=$(uname -s | tr "[:lower:]" "[:upper:]")	# e.g SunOS, Linux, Darwin -> SUNOS, LINUX, DARWIN
+ISA=$(uname -p | tr "[:lower:]" "[:upper:]") # e.g. sparc, x86_64, i386 -> SPARC, X86_64, I386
+
+if [ ${SYSTEM} = ${LINUX} ] ; then
 	ECHO="/bin/echo -e"
 else
 	ECHO="/bin/echo"
@@ -11,40 +28,23 @@ fi
 fatal_exit()
 {
 	${ECHO}
-	[ -n "${1}" ] && ${ECHO} ${1}". Aborting"
+	[ -n "${1:+x}" ] && ${ECHO} ${1}". Aborting"
 	exit 1
 }
 
 PATH=/usr/sbin:/bin:/usr/bin:/usr/local/bin:/opt/sfw/bin
 export PATH
 
-id "orc" > /dev/null 2>&1
-if [ $? -eq 0 ] ; then	
-	SSH_LOGIN="orc"
-	SUDO="sudo"
-else
-	SSH_LOGIN=${USER}
-	SUDO=""
-fi
-
 DEFAULT_SOURCE_HOST=linuxdev1 #Default server to download from
 ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.
 DEFAULT_BUILD="7.1" # What to download if the user doesn't explictly choose a build to retrieve
 DEFAULT_LATEST_SUCCESS="L" # Download last available (irrespective of whether a complete build) or the last known successful build
 
-#TODO Add ARCH and then update exclude lists based on ARCH
+RSYNC=$(which rsync) || fatal_exit "Unable to locate rsync"
+CHOWN=$(which chown) || fatal_exit "Unable to locate chown"
+  SUDO=$(which sudo) || fatal_exit "Unable to locate sudo"
 
-# Only Orc.app and Sauron.app if on a Mac
-if [ `uname -s`_ = "Darwin_" ] ; then
-	MAC=0
-else
-	MAC=1
-fi
-
-RSYNC=`which rsync` 
-[ -z ${RSYNC} ] && fatal_exit "Unable to locate rsync"
-CHOWN=`which chown` 
-[ -z ${CHOWN} ] && fatal_exit "Unable to locate chown"
+SSH_LOGIN=${USER}
 
 EXCLUDE_LIST=""
 
@@ -130,7 +130,7 @@ set_path()
 	BUILD_DESC="Nightly ${BUILD}"
 	DEST_DIR="/orcreleases/orc-${BUILD}"
 	SOURCE=${ROOT_DIR}
-	if [ ${MAC} -eq 0 ] ; then
+	if [ ${SYSTEM} = ${DARWIN} ] ; then
 		DEST_DIR="/Applications/Orc-"${BUILD}
 		SOURCE="	${SOURCE}/apps/Orc.app \
 		${SOURCE}/apps/Sauron.app \
@@ -162,22 +162,24 @@ set_exclude_list()
 								--exclude=arch/i386-pc-cygwin/
 								--exclude=i386-unknown-linux
 								--exclude=\*apple-darwin/
-								--exclude=\*sparc\*
 								--exclude=\*-gcc\*
 								--exclude=x86_64-sun-solaris/
 								--exclude=x86_64-unknown-linux-gcc
 								--exclude=apps/httpd\*"
-	if [ ${MAC} -eq 0 ] ; then
+	if [ ${SYSTEM} != ${SUNOS} ] ; then
+		EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*sparc\*"
+	fi
+	if [ ${SYSTEM} = ${DARWIN} ] ; then
 		EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*.dll --exclude=\*.exe"
 	fi
 }
 
-fatal_exit()
-{
-	${ECHO}
-	[ -n $1 ] && ${ECHO} ${1}
-	exit 1
-}
+#fatal_exit()
+#{
+#	${ECHO}
+#	if [ -n ${1:+x} ] && ${ECHO} ${1}
+#	exit 1
+#}
 
 # main()
 get_build
@@ -209,7 +211,7 @@ CMD="${SUDO} ${RSYNC} -rlptzuc --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"s
 eval ${CMD}
 TRANSFER_RESULT=$?
 
-if [ ! ${MAC} ] ; then #On a Mac/PC there's no Orc user
+if [ ${SYSTEM} != ${DARWIN} ] ; then #On a Mac/PC there's no Orc user
 	${ECHO}
 	${ECHO} "Changing owner and permissions of new Orc"
 	cd $DEST_DIR/..

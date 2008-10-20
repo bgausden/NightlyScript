@@ -44,7 +44,8 @@ RSYNC=$(which rsync) || fatal_exit "Unable to locate rsync"
 CHOWN=$(which chown) || fatal_exit "Unable to locate chown"
   SUDO=$(which sudo) || fatal_exit "Unable to locate sudo"
 
-SSH_LOGIN=${USER}
+SSH_LOGIN=$(id | sed 's/uid=[0-9][0-9]*(\([^)]*\)).*/\1/')
+
 
 EXCLUDE_LIST=""
 

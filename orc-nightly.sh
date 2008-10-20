@@ -2,15 +2,6 @@
 
 # Script to retrieve orc nightly builds via ssh/rsync
 
-
-#[ -n "${VAR+x}" ] ## Fails if VAR is unset
-#
-#[ -n "${VAR:+x}" ] ## Fails if VAR is unset or empty
-#
-#[ -n "${VAR-x}" ] ## Succeeds if VAR is unset
-#
-#[ -n "${VAR:-x}" ] ## Succeeds if VAR is unset or empty
-
 # Known systems - need to add new platforms to this list as needed e.g. if we support Power4 going forwards
 DARWIN="DARWIN"
 SUNOS="SUNOS"
@@ -45,7 +36,6 @@ CHOWN=$(which chown) || fatal_exit "Unable to locate chown"
   SUDO=$(which sudo) || fatal_exit "Unable to locate sudo"
 
 SSH_LOGIN=$(id | sed 's/uid=[0-9][0-9]*(\([^)]*\)).*/\1/')
-
 
 EXCLUDE_LIST=""
 
@@ -124,26 +114,26 @@ set_path()
 		L_OR_S="success"
 	fi
 	if [ ${BUILD} = "HEAD" ] ; then
-		ROOT_DIR="/pub/builds/nightly/${BUILD}/${L_OR_S}/release/orc"
+		ROOT_DIR="/pub/builds/nightly/${BUILD}/${L_OR_S}/release/orc/"
 	else
-		ROOT_DIR="/pub/builds/nightly/Orc-${BUILD/\./-}/${L_OR_S}/release/orc" # Need to change (e.g.) Orc-7.1 to Orc-7-1 to suit the dir structure in Sthlm.
+		ROOT_DIR="/pub/builds/nightly/Orc-${BUILD/\./-}/${L_OR_S}/release/orc/" # Need to change (e.g.) Orc-7.1 to Orc-7-1 to suit the dir structure in Sthlm.
 	fi
 	BUILD_DESC="Nightly ${BUILD}"
 	DEST_DIR="/orcreleases/orc-${BUILD}"
 	SOURCE=${ROOT_DIR}
 	if [ ${SYSTEM} = ${DARWIN} ] ; then
 		DEST_DIR="/Applications/Orc-"${BUILD}
-		SOURCE="	${SOURCE}/apps/Orc.app \
-		${SOURCE}/apps/Sauron.app \
-		${SOURCE}/lib/liquidator.jar \
-		${SOURCE}/lib/lprofiler.jar \
-		${SOURCE}/apps/Documentation/OrcTraderManual.pdf \
-		${SOURCE}/apps/Documentation/ReleaseNotes.pdf \
-		${SOURCE}/apps/Documentation/MarketLinks.pdf \
-		${SOURCE}/doc \
-		${SOURCE}/sdk/liquidator/Documentation \
-		${SOURCE}/sdk/liquidator/Examples \
-		${SOURCE}/sdk/op "
+		SOURCE="	${ROOT_DIR}/apps/Orc.app \
+		${ROOT_DIR}/apps/Sauron.app \
+		${ROOT_DIR}/lib/liquidator.jar \
+		${ROOT_DIR}/lib/lprofiler.jar \
+		${ROOT_DIR}/apps/Documentation/OrcTraderManual.pdf \
+		${ROOT_DIR}/apps/Documentation/ReleaseNotes.pdf \
+		${ROOT_DIR}/apps/Documentation/MarketLinks.pdf \
+		${ROOT_DIR}/doc \
+		${ROOT_DIR}/sdk/liquidator/Documentation \
+		${ROOT_DIR}/sdk/liquidator/Examples \
+		${ROOT_DIR}/sdk/op "
 	fi
 	BUILD_DESC="last successful "${BUILD_DESC}
 }
@@ -159,14 +149,15 @@ check_destination()
 
 set_exclude_list()
 {
-	EXCLUDE_LIST="--exclude=\*/CVS/
-								--exclude=arch/i386-pc-cygwin/
-								--exclude=i386-unknown-linux
-								--exclude=\*apple-darwin/
-								--exclude=\*-gcc\*
-								--exclude=x86_64-sun-solaris/
-								--exclude=x86_64-unknown-linux-gcc
-								--exclude=apps/httpd\*"
+	EXCLUDE_LIST="--exclude=\*/CVS/ \
+								--exclude=arch/i386-pc-cygwin/ \
+								--exclude=i386-unknown-linux \
+								--exclude=\*apple-darwin/ \
+								--exclude=\*-gcc..\* \
+								--exclude=x86_64-sun-solaris/ \
+								--exclude=x86_64-unknown-linux-gcc \
+								--exclude=apps/httpd\* \
+								--exclude=log/\*"
 	if [ ${SYSTEM} != ${SUNOS} ] ; then
 		EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*sparc\*"
 	fi

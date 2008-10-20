@@ -52,7 +52,7 @@ get_build()
 {
     while
         ${ECHO}
-        read -p "Download which build - 6.1, 7.1, (H)EAD or (Q)uit? <${DEFAULT_BUILD}> " -e BUILD
+        read -p "Download which build - 6.1, 7.1, 8.0, (H)EAD or (Q)uit? <${DEFAULT_BUILD}> " -e BUILD
         [ -z ${BUILD} ] && BUILD=${DEFAULT_BUILD}
         # grep for an acceptable response and convert to uppercase using tr(anslate)
         BUILD=`${ECHO} ${BUILD} | egrep '7\.1|8\.0|9\.0|[Hh]|[Qq]' | tr '[:lower:]' '[:upper:]'`

@@ -27,6 +27,7 @@ PATH=/usr/sbin:/bin:/usr/bin:/usr/local/bin:/opt/sfw/bin
 export PATH
 
 DEFAULT_SOURCE_HOST=linuxdev1 #Default server to download from
+[ `uname -n` = linuxdev1 ] && DEFAULT_SOURCE_HOST=storage.orcsoftware.com
 ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.
 DEFAULT_BUILD="7.1" # What to download if the user doesn't explictly choose a build to retrieve
 DEFAULT_LATEST_SUCCESS="L" # Download last available (irrespective of whether a complete build) or the last known successful build

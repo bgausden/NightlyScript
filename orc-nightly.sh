@@ -4,7 +4,7 @@
 
 # Builds we know about - update this list as builds become (un)available
 unset VERSIONS
-VERSIONS=(6.1 7.1 8.0 9.0 HEAD)
+VERSIONS=(6.1 7.1 8.0 HEAD)
 
 # Create an array "SHORT_VERSIONS" which contains only the first character
 #+ of each element in VERSIONS
@@ -77,7 +77,7 @@ get_delete()
 		DELETE_FILES=''
 	else
 		case ${i} in 
-			y|Y) 
+			y|Y)
 			DELETE_FILES="--delete"
 			;; 
 			*) 
@@ -202,15 +202,15 @@ fi
 
 case ${TRANSFER_RESULT} in
 	0)	
-	printf "\nSuccessfully installed "${BUILD_DESC}" build"
+	printf "\nSuccessfully installed ${BUILD_DESC} build\n"
 	;;
 
 	23)
-	printf "\nrsync reported \"nothing to transfer\"\c"
+	printf "\nrsync reported \"nothing to transfer\"\n"
 	;;
 
 	*)
-	printf "\rsync retrieval of "${BUILD_DESC}" reported errors. Please re-run and check the script output. \c"
+	printf "\nrsync retrieval of "${BUILD_DESC}" reported errors. Please re-run and check the script output.\n"
 	;;
 
 esac

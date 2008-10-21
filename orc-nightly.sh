@@ -1,6 +1,18 @@
-#!/bin/sh 
+#!/usr/bin/env bash 
 
 # Script to retrieve orc nightly builds via ssh/rsync
+
+# Builds we know about - update this list as builds become (un)available
+unset VERSIONS
+VERSIONS=(6.1 7.1 8.0 9.0 H)
+
+# Create an array "SHORT_VERSIONS" which contains only the first character
+#+ of each element in VERSIONS
+unset SHORT_VERSIONS
+for i in ${VERSIONS[@]}
+do
+	SHORT_VERSIONS=(${SHORT_VERSIONS} $i)
+done
 
 # Known systems - need to add new platforms to this list as needed e.g. if we support Power4 going forwards
 DARWIN="DARWIN"
@@ -18,8 +30,7 @@ fi
 
 fatal_exit()
 {
-	${ECHO}
-	[ -n "${1:+x}" ] && ${ECHO} ${1}". Aborting"
+	[ -n "${1:+x}" ] && printf "%s\n${1}. Aborting"
 	exit 1
 }
 
@@ -36,6 +47,7 @@ RSYNC=$(which rsync) || fatal_exit "Unable to locate rsync"
 CHOWN=$(which chown) || fatal_exit "Unable to locate chown"
   SUDO=$(which sudo) || fatal_exit "Unable to locate sudo"
 
+# TODO Update script to just run as the current user. Try to remove use of sudo where possible.
 SSH_LOGIN=$(id | sed 's/uid=[0-9][0-9]*(\([^)]*\)).*/\1/')
 
 EXCLUDE_LIST=""
@@ -43,16 +55,15 @@ EXCLUDE_LIST=""
 get_build()
 {
     while
-        ${ECHO}
-        read -p "Download which build - 6.1, 7.1, 8.0, (H)EAD or (Q)uit? <${DEFAULT_BUILD}> " -e BUILD
+				printf "\n"
+        read -p "Download which build - 6.1, 7.1, 8.0, (H)EAD or (Q)uit? <${DEFAULT_BUILD}> " BUILD
         [ -z ${BUILD} ] && BUILD=${DEFAULT_BUILD}
         # grep for an acceptable response and convert to uppercase using tr(anslate)
         BUILD=`${ECHO} ${BUILD} | egrep '7\.1|8\.0|9\.0|[Hh]|[Qq]' | tr '[:lower:]' '[:upper:]'`
-        # if $BUILD is non-null, then test returns 1 and we exit the while loop
-        #test ${BUILD}"_" = "_"
+        # if $BUILD is non-null after the egrep, then test returns 1 and we exit the while loop
 				[ -z ${BUILD} ]
     do
-        ${ECHO} ""
+				:
     done
     if [ ${BUILD} = "H" ] ; then
         BUILD="HEAD"
@@ -64,9 +75,8 @@ get_delete()
 	DELETE_FILES=N
 	while :
 	do
-		${ECHO}
-		${ECHO} "Delete files not also on server (dangerous!) <"${DELETE_FILES}"> \c"
-		read DELETE_FILES
+		printf "\n"
+		read -p "Delete files not also on server (dangerous!) <"${DELETE_FILES}"> " DELETE_FILES
 		case ${DELETE_FILES:=N} in 
 			n|N) 
 				DELETE_FILES=""
@@ -82,17 +92,15 @@ get_delete()
 
 get_source_host()
 {
-	${ECHO}
-	${ECHO} "Sync with which server <"${DEFAULT_SOURCE_HOST}"> \c"
-	read SOURCE_HOST
+	printf "\n"
+	read -p "Sync with which server <${DEFAULT_SOURCE_HOST}> " SOURCE_HOST
 	[ -z ${SOURCE_HOST} ] && SOURCE_HOST=${DEFAULT_SOURCE_HOST}
 }
 
 get_latest_or_success()
 {
-        ${ECHO}
-        ${ECHO} "Download (L)atest available build or last (S)uccessful build <${DEFAULT_LATEST_SUCCESS}> \c"   
-        read LATEST_OR_SUCCESS
+        printf "\n"
+        read -p "Download (L)atest available build or last (S)uccessful build <${DEFAULT_LATEST_SUCCESS}> " LATEST_OR_SUCCESS
 				case ${LATEST_OR_SUCCESS} in
 					S|s)
 					LATEST_OR_SUCCESS=S
@@ -117,7 +125,8 @@ set_path()
 	if [ ${BUILD} = "HEAD" ] ; then
 		ROOT_DIR="/pub/builds/nightly/${BUILD}/${L_OR_S}/release/orc/"
 	else
-		ROOT_DIR="/pub/builds/nightly/Orc-${BUILD/\./-}/${L_OR_S}/release/orc/" # Need to change (e.g.) Orc-7.1 to Orc-7-1 to suit the dir structure in Sthlm.
+		# Need to change (e.g.) Orc-7.1 to Orc-7-1 to suit the dir structure in Sthlm.
+		ROOT_DIR="/pub/builds/nightly/Orc-${BUILD/\./-}/${L_OR_S}/release/orc/" 
 	fi
 	BUILD_DESC="Nightly ${BUILD}"
 	DEST_DIR="/orcreleases/orc-${BUILD}"
@@ -142,8 +151,7 @@ set_path()
 check_destination()
 {
     if [ ! -d ${DEST_DIR} ] ; then
-        ${ECHO}
-        ${ECHO} "Destination directory (${DEST_DIR}) does not exist, creating."
+        printf "\nDestination directory (${DEST_DIR}) does not exist, creating."
 				mkdir -p ${DEST_DIR} > /dev/null || fatal_exit "Unable to create ${DEST_DIR}"
     fi
 }
@@ -167,13 +175,6 @@ set_exclude_list()
 	fi
 }
 
-#fatal_exit()
-#{
-#	${ECHO}
-#	if [ -n ${1:+x} ] && ${ECHO} ${1}
-#	exit 1
-#}
-
 # main()
 get_build
 if [ ${BUILD} = "Q" -o ${BUILD} = "q" ] ; then 
@@ -186,8 +187,7 @@ set_path
 check_destination
 set_exclude_list
 
-${ECHO}
-${ECHO} "Retrieving "$BUILD_DESC" build from "$SOURCE_HOST
+printf "\nRetrieving $BUILD_DESC build from $SOURCE_HOST\n"
 
 # rsync flags are 
 # -r	recurse into directories
@@ -205,8 +205,7 @@ eval ${CMD}
 TRANSFER_RESULT=$?
 
 if [ ${SYSTEM} != ${DARWIN} ] ; then #On a Mac/PC there's no Orc user
-	${ECHO}
-	${ECHO} "Changing owner and permissions of new Orc"
+	printf "\nChanging owner and permissions of new Orc"
 	cd $DEST_DIR/..
 	CMD="${CHOWN} -R orc:orc ${DEST_DIR}"
 	sudo ${CMD} || fatal_exit "Unable to update owner & group of ${DEST_DIR} - please check that you are in sudoers and manually update the owner & group of ${DEST_DIR}"
@@ -214,18 +213,15 @@ fi
 
 case ${TRANSFER_RESULT} in
 	0)	
-	${ECHO}
-	${ECHO} "Successfully installed "${BUILD_DESC}" build"
+	printf "\nSuccessfully installed "${BUILD_DESC}" build"
 	;;
 
 	23)
-	${ECHO}
-	${ECHO} "rsync reported \"nothing to transfer\"\c"
+	printf "\nrsync reported \"nothing to transfer\"\c"
 	;;
 
 	*)
-	${ECHO}
-	${ECHO} "rsync retrieval of "${BUILD_DESC}" reported errors. Please re-run and check the script output. \c"
+	printf "\rsync retrieval of "${BUILD_DESC}" reported errors. Please re-run and check the script output. \c"
 	;;
 
 esac

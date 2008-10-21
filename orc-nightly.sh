@@ -189,7 +189,8 @@ printf "\nRetrieving $BUILD_DESC build from $SOURCE_HOST\n"
 # -c	(checksum) skip based on checksum, not mod-time & size
 # ${DELETE_FILES} (--delete) delete extraneous files from dest dirs
 # Note also that all the escaped quotes around the -e option and the :$SOURCE are mandatory - don't be tempted to remove them.
-CMD="${SUDO} ${RSYNC} -rlptzuc --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SSH_LOGIN}@${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
+#CMD="${SUDO} ${RSYNC} -rlptzuc --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SSH_LOGIN}@${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
+CMD="${RSYNC} -rlptzuc --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
 eval ${CMD}
 TRANSFER_RESULT=$?
 

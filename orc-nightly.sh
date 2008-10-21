@@ -4,7 +4,7 @@
 
 # Builds we know about - update this list as builds become (un)available
 unset VERSIONS
-VERSIONS=(6.1 7.1 8.0 9.0 H)
+VERSIONS=(6.1 7.1 8.0 9.0 HEAD)
 
 # Create an array "SHORT_VERSIONS" which contains only the first character
 #+ of each element in VERSIONS
@@ -54,41 +54,38 @@ EXCLUDE_LIST=""
 
 get_build()
 {
-    while
-				printf "\n"
-        read -p "Download which build - 6.1, 7.1, 8.0, (H)EAD or (Q)uit? <${DEFAULT_BUILD}> " BUILD
-        [ -z ${BUILD} ] && BUILD=${DEFAULT_BUILD}
-        # grep for an acceptable response and convert to uppercase using tr(anslate)
-        BUILD=`${ECHO} ${BUILD} | egrep '7\.1|8\.0|9\.0|[Hh]|[Qq]' | tr '[:lower:]' '[:upper:]'`
-        # if $BUILD is non-null after the egrep, then test returns 1 and we exit the while loop
-				[ -z ${BUILD} ]
-    do
-				:
-    done
-    if [ ${BUILD} = "H" ] ; then
-        BUILD="HEAD"
-    fi
+	PS3="Which build should be downloaded? "
+	printf "\n"
+	select i in ${VERSIONS[@]}
+do
+	if [ ${REPLY} -le ${#VERSIONS[@]} ] ; then
+		BUILD=${i}
+		break
+	else
+		BUILD=${DEFAULT_BUILD}
+		break
+	fi
+done
+printf "%s\nDownloading ${BUILD}\n"
 }
 
 get_delete()
 {
-	DELETE_FILES=N
-	while :
-	do
-		printf "\n"
-		read -p "Delete files not also on server (dangerous!) <"${DELETE_FILES}"> " DELETE_FILES
-		case ${DELETE_FILES:=N} in 
-			n|N) 
-				DELETE_FILES=""
-				break
-				;;
+	printf "\n"
+	read -p "Delete files not also on server (dangerous!) <N> " i
+	if [ -z ${i} ] ; then
+		DELETE_FILES=''
+	else
+		case ${i} in 
 			y|Y) 
-				DELETE_FILES="--delete"
-				break 
-				;; 
+			DELETE_FILES="--delete"
+			;; 
+			*) 
+			DELETE_FILES=""
+			;;
 		esac
-	done
-	}
+	fi
+}
 
 get_source_host()
 {
@@ -113,7 +110,6 @@ get_latest_or_success()
 					;;
 				esac
 }
-
 
 set_path()
 {
@@ -167,19 +163,12 @@ set_exclude_list()
 								--exclude=x86_64-unknown-linux-gcc \
 								--exclude=apps/httpd\* \
 								--exclude=log/\*"
-	if [ ${SYSTEM} != ${SUNOS} ] ; then
-		EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*sparc\*"
-	fi
-	if [ ${SYSTEM} = ${DARWIN} ] ; then
-		EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*.dll --exclude=\*.exe"
-	fi
+	[ ${SYSTEM} != ${SUNOS} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*sparc\*"
+	[ ${SYSTEM} = ${DARWIN} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*.dll --exclude=\*.exe"
 }
 
 # main()
 get_build
-if [ ${BUILD} = "Q" -o ${BUILD} = "q" ] ; then 
-    exit
-fi
 get_source_host
 get_delete
 get_latest_or_success
@@ -208,7 +197,7 @@ if [ ${SYSTEM} != ${DARWIN} ] ; then #On a Mac/PC there's no Orc user
 	printf "\nChanging owner and permissions of new Orc"
 	cd $DEST_DIR/..
 	CMD="${CHOWN} -R orc:orc ${DEST_DIR}"
-	sudo ${CMD} || fatal_exit "Unable to update owner & group of ${DEST_DIR} - please check that you are in sudoers and manually update the owner & group of ${DEST_DIR}"
+	sudo ${CMD} > /dev/null 2>&1 || fatal_exit "Unable to update owner & group of ${DEST_DIR} - please check that you are in sudoers and manually update the owner & group of ${DEST_DIR}"
 fi
 
 case ${TRANSFER_RESULT} in

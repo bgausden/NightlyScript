@@ -37,8 +37,7 @@ fatal_exit()
 PATH=/usr/sbin:/bin:/usr/bin:/usr/local/bin:/opt/sfw/bin
 export PATH
 
-DEFAULT_SOURCE_HOST=linuxdev1 #Default server to download from
-[ `uname -n` = linuxdev1 ] && DEFAULT_SOURCE_HOST=storage.orcsoftware.com
+DEFAULT_SOURCE_HOST=storage.orcsoftware.com #Default server to download from
 ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.
 DEFAULT_BUILD="7.1" # What to download if the user doesn't explictly choose a build to retrieve
 DEFAULT_LATEST_SUCCESS="L" # Download last available (irrespective of whether a complete build) or the last known successful build
@@ -158,9 +157,9 @@ set_exclude_list()
 								--exclude=i386-unknown-linux \
 								--exclude=x86_64-sun-solaris/ \
 								--exclude=log/\*"
-	[ ${SYSTEM} != ${SUNOS} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch\*sparc\*"
-	[ ${SYSTEM} != ${LINUX} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch\*linux\*"
-	[ ${SYSTEM} != ${DARWIN} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch\*darwin\*"
+	[ ${SYSTEM} != ${SUNOS} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch/\*sparc\*"
+	[ ${SYSTEM} != ${LINUX} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch/\*linux\*"
+	[ ${SYSTEM} != ${DARWIN} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch/\*darwin\*"
 	[ ${SYSTEM} = ${DARWIN} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*.dll --exclude=\*.exe"
 }
 

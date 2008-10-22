@@ -157,10 +157,7 @@ set_exclude_list()
 								--exclude=i386-pc-cygwin/ \
 								--exclude=i386-unknown-linux \
 								--exclude=\*apple-darwin/ \
-								--exclude=\*-gcc..\* \
 								--exclude=x86_64-sun-solaris/ \
-								--exclude=x86_64-unknown-linux-gcc \
-								--exclude=apps/httpd\* \
 								--exclude=log/\*"
 	[ ${SYSTEM} != ${SUNOS} ] && [ `uname -n` != linuxdev1 ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*sparc\*"
 	[ ${SYSTEM} = ${DARWIN} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*.dll --exclude=\*.exe"

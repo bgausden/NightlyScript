@@ -47,7 +47,6 @@ RSYNC=$(which rsync) || fatal_exit "Unable to locate rsync"
 CHOWN=$(which chown) || fatal_exit "Unable to locate chown"
   SUDO=$(which sudo) || fatal_exit "Unable to locate sudo"
 
-# TODO Update script to just run as the current user. Try to remove use of sudo where possible.
 SSH_LOGIN=$(id | sed 's/uid=[0-9][0-9]*(\([^)]*\)).*/\1/')
 
 EXCLUDE_LIST=""
@@ -58,15 +57,15 @@ get_build()
 	printf "\n"
 	select i in ${VERSIONS[@]}
 do
-	if [ ${REPLY} -le ${#VERSIONS[@]} ] ; then
-		BUILD=${i}
-		break
-	else
-		BUILD=${DEFAULT_BUILD}
-		break
-	fi
+	break
 done
-printf "%s\nDownloading ${BUILD}\n"
+if [ -n "${i}" ] ; then
+	BUILD="${i}"
+	printf "%s\nDownloading ${BUILD}\n"
+else
+	printf "%s\nDownloading default build - ${DEFAULT_BUILD}\n"
+	BUILD=${DEFAULT_BUILD}
+fi
 }
 
 get_delete()
@@ -155,7 +154,7 @@ check_destination()
 set_exclude_list()
 {
 	EXCLUDE_LIST="--exclude=\*/CVS/ \
-								--exclude=arch/i386-pc-cygwin/ \
+								--exclude=i386-pc-cygwin/ \
 								--exclude=i386-unknown-linux \
 								--exclude=\*apple-darwin/ \
 								--exclude=\*-gcc..\* \
@@ -163,7 +162,7 @@ set_exclude_list()
 								--exclude=x86_64-unknown-linux-gcc \
 								--exclude=apps/httpd\* \
 								--exclude=log/\*"
-	[ ${SYSTEM} != ${SUNOS} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*sparc\*"
+	[ ${SYSTEM} != ${SUNOS} ] && [ `uname -n` != linuxdev1 ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*sparc\*"
 	[ ${SYSTEM} = ${DARWIN} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*.dll --exclude=\*.exe"
 }
 

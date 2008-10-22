@@ -156,10 +156,11 @@ set_exclude_list()
 	EXCLUDE_LIST="--exclude=\*/CVS/ \
 								--exclude=i386-pc-cygwin/ \
 								--exclude=i386-unknown-linux \
-								--exclude=\*apple-darwin/ \
 								--exclude=x86_64-sun-solaris/ \
 								--exclude=log/\*"
-	[ ${SYSTEM} != ${SUNOS} ] && [ `uname -n` != linuxdev1 ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*sparc\*"
+	[ ${SYSTEM} != ${SUNOS} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch\*sparc\*"
+	[ ${SYSTEM} != ${LINUX} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch\*linux\*"
+	[ ${SYSTEM} != ${DARWIN} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch\*darwin\*"
 	[ ${SYSTEM} = ${DARWIN} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*.dll --exclude=\*.exe"
 }
 
@@ -182,10 +183,10 @@ printf "\nRetrieving $BUILD_DESC build from $SOURCE_HOST\n"
 # -v	increase verbosity
 # -z	compress file data during the transfer
 # -u	(update) skip files that are newer on the receiver
-# -c	(checksum) skip based on checksum, not mod-time & size
+# -c	(checksum) skip based on checksum, not mod-time & size (high I/O and slows sync so currently disabled)
 # ${DELETE_FILES} (--delete) delete extraneous files from dest dirs
 # Note also that all the escaped quotes around the -e option and the :$SOURCE are mandatory - don't be tempted to remove them.
-#CMD="${SUDO} ${RSYNC} -rlptzuc --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SSH_LOGIN}@${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
+#CMD="${SUDO} ${RSYNC} -rlptzu --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SSH_LOGIN}@${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
 CMD="${RSYNC} -rlptzuc --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
 eval ${CMD}
 TRANSFER_RESULT=$?

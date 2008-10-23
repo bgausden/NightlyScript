@@ -144,10 +144,18 @@ set_path()
 
 check_destination()
 {
-    if [ ! -d ${DEST_DIR} ] ; then
-        printf "\nDestination directory (${DEST_DIR}) does not exist, creating."
-				mkdir -p ${DEST_DIR} > /dev/null || fatal_exit "Unable to create ${DEST_DIR}"
-    fi
+	if [ ! -d ${DEST_DIR} ] ; then
+		printf "\n"
+		read -p "Destination directory (${DEST_DIR}) does not exist, create? <N> " CREATE_DESTINATION
+		case ${CREATE_DESTINATION} in
+			Y|y)
+			mkdir -p ${DEST_DIR} > /dev/null || fatal_exit "Unable to create ${DEST_DIR}"
+			;;
+			*)
+			:
+			;;
+		esac
+	fi
 }
 
 set_exclude_list()

@@ -42,6 +42,8 @@ ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source
 DEFAULT_BUILD="7.1" # What to download if the user doesn't explictly choose a build to retrieve
 DEFAULT_LATEST_SUCCESS="L" # Download last available (irrespective of whether a complete build) or the last known successful build
 
+APPS_ONLY=""
+
 RSYNC=$(which rsync) || fatal_exit "Unable to locate rsync"
 CHOWN=$(which chown) || fatal_exit "Unable to locate chown"
   SUDO=$(which sudo) || fatal_exit "Unable to locate sudo"
@@ -152,7 +154,7 @@ check_destination()
 			mkdir -p ${DEST_DIR} > /dev/null || fatal_exit "Unable to create ${DEST_DIR}"
 			;;
 			*)
-			:
+			exit 0
 			;;
 		esac
 	fi
@@ -170,6 +172,8 @@ set_exclude_list()
 	[ ${SYSTEM} != ${LINUX} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch/\*linux\*"
 	[ ${SYSTEM} != ${DARWIN} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch/\*darwin\*"
 	[ ${SYSTEM} = ${DARWIN} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*.dll --exclude=\*.exe"
+
+	[ "${APPS_ONLY}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=apps"
 }
 
 # main()

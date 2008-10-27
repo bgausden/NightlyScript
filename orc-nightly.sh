@@ -164,6 +164,7 @@ set_exclude_list()
 								--exclude=i386-pc-cygwin/ \
 								--exclude=i386-unknown-linux \
 								--exclude=x86_64-sun-solaris/ \
+								--exclude=distrib/ \
 								--exclude=log/\*"
 	[ ${SYSTEM} != ${SUNOS} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch/\*sparc\*"
 	[ ${SYSTEM} != ${LINUX} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch/\*linux\*"

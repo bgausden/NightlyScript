@@ -2,6 +2,19 @@
 
 # Script to retrieve orc nightly builds via ssh/rsync
 
+fatal_exit()
+{
+	[ -n "${1:+x}" ] && printf "%s\n${1}. Aborting"
+	exit 1
+}
+
+export PATH=/usr/xpg4/bin:${PATH}
+
+RSYNC=$(which rsync) || fatal_exit "Unable to locate rsync"
+CHOWN=$(which chown) || fatal_exit "Unable to locate chown"
+# SUDO=$(which sudo) || fatal_exit "Unable to locate sudo"
+      TR=$(which tr) || fatal_exit "Unable to locate tr"
+
 # Builds we know about - update this list as builds become (un)available
 unset VERSIONS
 VERSIONS=(6.1 7.1 8.0 HEAD)
@@ -14,39 +27,28 @@ do
 	SHORT_VERSIONS=(${SHORT_VERSIONS} $i)
 done
 
-# Known systems - need to add new platforms to this list as needed e.g. if we support Power4 going forwards
+# Known systems - need to add new platforms to this list as needed e.g. if we support Power going forward
 DARWIN="DARWIN"
 SUNOS="SUNOS"
 LINUX="LINUX"
 
+# Known architectures
+I386="I386"
+SPARC="SPARC"
+
 SYSTEM=$(uname -s | tr "[:lower:]" "[:upper:]")	# e.g SunOS, Linux, Darwin -> SUNOS, LINUX, DARWIN
 ISA=$(uname -p | tr "[:lower:]" "[:upper:]") # e.g. sparc, x86_64, i386 -> SPARC, X86_64, I386
 
-if [ ${SYSTEM} = ${LINUX} ] ; then
-	ECHO="/bin/echo -e"
-else
-	ECHO="/bin/echo"
-fi
-
-fatal_exit()
-{
-	[ -n "${1:+x}" ] && printf "%s\n${1}. Aborting"
-	exit 1
-}
-
-PATH=/usr/sbin:/bin:/usr/bin:/usr/local/bin:/opt/sfw/bin
-export PATH
+#PATH=/usr/sbin:/bin:/usr/bin:/usr/local/bin:/opt/sfw/bin
+#export PATH
 
 DEFAULT_SOURCE_HOST=storage.orcsoftware.com #Default server to download from
 ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.
 DEFAULT_BUILD="7.1" # What to download if the user doesn't explictly choose a build to retrieve
 DEFAULT_LATEST_SUCCESS="L" # Download last available (irrespective of whether a complete build) or the last known successful build
 
-APPS_ONLY=""
-
-RSYNC=$(which rsync) || fatal_exit "Unable to locate rsync"
-CHOWN=$(which chown) || fatal_exit "Unable to locate chown"
-  SUDO=$(which sudo) || fatal_exit "Unable to locate sudo"
+# Set EXCLUDE_APPS to a non-null value (e.g. YES) to exclude the Orc apps from the d/l. (Useful for VMs)
+EXCLUDE_APPS="YES"
 
 SSH_LOGIN=$(id | sed 's/uid=[0-9][0-9]*(\([^)]*\)).*/\1/')
 
@@ -173,7 +175,10 @@ set_exclude_list()
 	[ ${SYSTEM} != ${DARWIN} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch/\*darwin\*"
 	[ ${SYSTEM} = ${DARWIN} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*.dll --exclude=\*.exe"
 
-	[ "${APPS_ONLY}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=apps"
+	[ ${SYSTEM} = ${SUNOS} ] && [ ${ISA} = ${SPARC} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch/x86_64-sun\*/"
+	[ ${SYSTEM} = ${SUNOS} ] && [ ${ISA} = ${I386} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch/sparc-sun\*/"
+	
+	[ "${EXCLUDE_APPS}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=apps"
 }
 
 # main()
@@ -204,10 +209,11 @@ eval ${CMD}
 TRANSFER_RESULT=$?
 
 if [ ${SYSTEM} != ${DARWIN} ] ; then #On a Mac/PC there's no Orc user
-	printf "\nChanging owner and permissions of new Orc"
+	printf "\nChanging owner and permissions of new Orc\n"
 	cd $DEST_DIR/..
 	CMD="${CHOWN} -R orc:orc ${DEST_DIR}"
-	sudo ${CMD} > /dev/null 2>&1 || fatal_exit "Unable to update owner & group of ${DEST_DIR} - please check that you are in sudoers and manually update the owner & group of ${DEST_DIR}"
+	#sudo ${CMD} > /dev/null 2>&1 || fatal_exit "Unable to update owner & group of ${DEST_DIR} - please check that you are in sudoers and manually update the owner & group of ${DEST_DIR}"
+	eval ${CMD}
 fi
 
 case ${TRANSFER_RESULT} in

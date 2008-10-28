@@ -8,6 +8,7 @@ fatal_exit()
 	exit 1
 }
 
+# Add /usr/xpg4/bin to path to use the XPG4 version of tr on Solaris systems, otherwise the script breaks if the locale is (e.g.) UTF8
 export PATH=/usr/xpg4/bin:${PATH}
 
 RSYNC=$(which rsync) || fatal_exit "Unable to locate rsync"
@@ -33,6 +34,7 @@ SUNOS="SUNOS"
 LINUX="LINUX"
 
 # Known architectures
+X86_64="X86_64"
 I386="I386"
 SPARC="SPARC"
 
@@ -164,21 +166,29 @@ check_destination()
 
 set_exclude_list()
 {
-	EXCLUDE_LIST="--exclude=\*/CVS/ \
-								--exclude=i386-pc-cygwin/ \
-								--exclude=i386-unknown-linux \
-								--exclude=x86_64-sun-solaris/ \
-								--exclude=distrib/ \
-								--exclude=log/\*"
-	[ ${SYSTEM} != ${SUNOS} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch/\*sparc\*"
-	[ ${SYSTEM} != ${LINUX} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch/\*linux\*"
-	[ ${SYSTEM} != ${DARWIN} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch/\*darwin\*"
-	[ ${SYSTEM} = ${DARWIN} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=\*.dll --exclude=\*.exe"
+	CVS="--exclude=\*/CVS/"															# CVS
+	CYGWIN="--exclude=i386-pc-cygwin/"									# Cygwin
+	LINUX32="--exclude=i386-unknown-linux/"							# 32bit Linux
+	DISTRIB="--exclude=distrib/"												# Orc Monitor
+	LOGS="--exclude=log/\*"															# Logs
+	APPS="--exclude=apps"																# Apps
+	ALLSUNOS="--exclude=arch/\*solaris\*"								# Solaris x86_64 & SPARC
+	ALLLINUX="--exclude=arch/\*linux\*"									# Linux all flavours
+	ALLDARWIN="--exclude=arch/\*darwin\*"								# Mac
+	WINDOWS_EXES="--exclude=\*.dll --exclude=\*.exe"		# DLLs and EXEs
+	X86_64_SUN="--exclude=arch/x86_64-sun\*/"						# Solaris x86_64
+	SPARC_SUN="--exclude=arch/sparc-sun\*/"							# Solaris SPARC
 
-	[ ${SYSTEM} = ${SUNOS} ] && [ ${ISA} = ${SPARC} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch/x86_64-sun\*/"
-	[ ${SYSTEM} = ${SUNOS} ] && [ ${ISA} = ${I386} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=arch/sparc-sun\*/"
+	EXCLUDE_LIST="${CVS} ${CYGWIN} ${LINUX32} ${DISTRIB} ${LOGS}"
+
+	[ ${SYSTEM} != ${SUNOS} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${ALLSUNOS}"
+	[ ${SYSTEM} != ${LINUX} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${ALLLINUX}"
+	[ ${SYSTEM} != ${DARWIN} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${ALLDARWIN}"
+
+	[ ${SYSTEM} = ${SUNOS} ] && [ ${ISA} != ${SPARC} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${SPARC_SUN}"
+	[ ${SYSTEM} = ${SUNOS} ] && [ ${ISA} = ${I386} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${X86_64_SUN}"
 	
-	[ "${EXCLUDE_APPS}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" --exclude=apps"
+	[ "${EXCLUDE_APPS}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${APPS}"
 }
 
 # main()
@@ -200,10 +210,9 @@ printf "\nRetrieving $BUILD_DESC build from $SOURCE_HOST\n"
 # -v	increase verbosity
 # -z	compress file data during the transfer
 # -u	(update) skip files that are newer on the receiver
-# -c	(checksum) skip based on checksum, not mod-time & size (high I/O and slows sync so currently disabled)
+# -c	(checksum) skip based on checksum, not mod-time & size (high I/O but potentially less to transmit)
 # ${DELETE_FILES} (--delete) delete extraneous files from dest dirs
 # Note also that all the escaped quotes around the -e option and the :$SOURCE are mandatory - don't be tempted to remove them.
-#CMD="${SUDO} ${RSYNC} -rlptzu --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SSH_LOGIN}@${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
 CMD="${RSYNC} -rlptzuc --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
 eval ${CMD}
 TRANSFER_RESULT=$?
@@ -212,6 +221,7 @@ if [ ${SYSTEM} != ${DARWIN} ] ; then #On a Mac/PC there's no Orc user
 	printf "\nChanging owner and permissions of new Orc\n"
 	cd $DEST_DIR/..
 	CMD="${CHOWN} -R orc:orc ${DEST_DIR}"
+	#TODO add test for sudo - if permitted then use sudo otherwise try to update owner/group without sudo
 	#sudo ${CMD} > /dev/null 2>&1 || fatal_exit "Unable to update owner & group of ${DEST_DIR} - please check that you are in sudoers and manually update the owner & group of ${DEST_DIR}"
 	eval ${CMD}
 fi

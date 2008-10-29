@@ -50,7 +50,7 @@ DEFAULT_BUILD="7.1" # What to download if the user doesn't explictly choose a bu
 DEFAULT_LATEST_SUCCESS="L" # Download last available (irrespective of whether a complete build) or the last known successful build
 
 # Set EXCLUDE_APPS to a non-null value (e.g. YES) to exclude the Orc apps from the d/l. (Useful for VMs)
-EXCLUDE_APPS="YES"
+EXCLUDE_APPS=""
 
 SSH_LOGIN=$(id | sed 's/uid=[0-9][0-9]*(\([^)]*\)).*/\1/')
 

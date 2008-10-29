@@ -186,7 +186,7 @@ set_exclude_list()
 	[ ${SYSTEM} != ${DARWIN} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${ALLDARWIN}"
 
 	[ ${SYSTEM} = ${SUNOS} ] && [ ${ISA} != ${SPARC} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${SPARC_SUN}"
-	[ ${SYSTEM} = ${SUNOS} ] && [ ${ISA} = ${I386} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${X86_64_SUN}"
+	[ ${SYSTEM} = ${SUNOS} ] && [ ${ISA} != ${I386} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${X86_64_SUN}"
 	
 	[ "${EXCLUDE_APPS}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${APPS}"
 }

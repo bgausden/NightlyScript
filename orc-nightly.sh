@@ -51,6 +51,8 @@ DEFAULT_LATEST_SUCCESS="L" # Download last available (irrespective of whether a 
 
 # Set EXCLUDE_APPS to a non-null value (e.g. YES) to exclude the Orc apps from the d/l. (Useful for VMs)
 EXCLUDE_APPS=""
+EXCLUDE_DISTRIB=""
+EXCLUDE_PDF=""
 
 # Extract the username of the current user for future use
 SSH_LOGIN=$(id | sed 's/uid=[0-9][0-9]*(\([^)]*\)).*/\1/')
@@ -182,6 +184,7 @@ set_exclude_list()
 	DISTRIB="--exclude=distrib/"												# Orc Monitor
 	LOGS="--exclude=log/\*"															# Logs
 	APPS="--exclude=apps"																# Apps
+	PDF="--exclude=\*.pdf"															# PDF Documentation
 	ALLSUNOS="--exclude=arch/\*solaris\*"								# Solaris x86_64 & SPARC
 	ALLLINUX="--exclude=arch/\*linux\*"									# Linux all flavours
 	ALLDARWIN="--exclude=arch/\*darwin\*"								# Mac
@@ -189,7 +192,7 @@ set_exclude_list()
 	X86_64_SUN="--exclude=arch/x86_64-sun\*/"						# Solaris x86_64
 	SPARC_SUN="--exclude=arch/sparc-sun\*/"							# Solaris SPARC
 
-	EXCLUDE_LIST="${CVS} ${CYGWIN} ${LINUX32} ${DISTRIB} ${LOGS}"
+	EXCLUDE_LIST="${CVS} ${CYGWIN} ${LINUX32} ${LOGS}"
 
 	[ ${SYSTEM} != ${SUNOS} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${ALLSUNOS}"
 	[ ${SYSTEM} != ${LINUX} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${ALLLINUX}"
@@ -199,6 +202,8 @@ set_exclude_list()
 	[ ${SYSTEM} = ${SUNOS} ] && [ ${ISA} != ${I386} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${X86_64_SUN}"
 	
 	[ "${EXCLUDE_APPS}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${APPS}"
+	[ "${EXCLUDE_DISTRIB}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${DISTRIB}"
+	[ "${EXCLUDE_PDF}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${PDF}"
 }
 
 # main()

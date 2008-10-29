@@ -52,9 +52,19 @@ DEFAULT_LATEST_SUCCESS="L" # Download last available (irrespective of whether a 
 # Set EXCLUDE_APPS to a non-null value (e.g. YES) to exclude the Orc apps from the d/l. (Useful for VMs)
 EXCLUDE_APPS=""
 
+# Extract the username of the current user for future use
 SSH_LOGIN=$(id | sed 's/uid=[0-9][0-9]*(\([^)]*\)).*/\1/')
 
+# Initialize the list of directories to exclude from the sync
 EXCLUDE_LIST=""
+
+# Source a config file which can override the script variables e.g. EXCLUDE_APPS
+CONF_FILE=orc-nightly.conf
+if [ -f ./${CONF_FILE} ] ; then 
+	source ./${CONF_FILE}
+else
+	[ -f /etc/${CONF_FILE} ] && source /etc/${CONF_FILE}
+fi
 
 get_build()
 {

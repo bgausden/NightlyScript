@@ -18,10 +18,10 @@ CHOWN=$(which chown) || fatal_exit "Unable to locate chown"
 
 # Builds we know about - update this list as builds become (un)available
 unset VERSIONS
-VERSIONS=(6.1 7.1 8.0 HEAD)
+VERSIONS=(6.1 7.1 8.0 9.0 HEAD)
 
 # Create an array "SHORT_VERSIONS" which contains only the first character
-#+ of each element in VERSIONS
+# of each element in VERSIONS
 unset SHORT_VERSIONS
 for i in ${VERSIONS[@]}
 do
@@ -41,9 +41,6 @@ SPARC="SPARC"
 SYSTEM=$(uname -s | tr "[:lower:]" "[:upper:]")	# e.g SunOS, Linux, Darwin -> SUNOS, LINUX, DARWIN
 ISA=$(uname -p | tr "[:lower:]" "[:upper:]") # e.g. sparc, x86_64, i386 -> SPARC, X86_64, I386
 
-#PATH=/usr/sbin:/bin:/usr/bin:/usr/local/bin:/opt/sfw/bin
-#export PATH
-
 DEFAULT_SOURCE_HOST=storage.orcsoftware.com #Default server to download from
 ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.
 DEFAULT_BUILD="7.1" # What to download if the user doesn't explictly choose a build to retrieve
@@ -55,7 +52,8 @@ EXCLUDE_DISTRIB=""
 EXCLUDE_PDF=""
 
 # Extract the username of the current user for future use
-SSH_LOGIN=$(id | sed 's/uid=[0-9][0-9]*(\([^)]*\)).*/\1/')
+#SSH_LOGIN=$(id | sed 's/uid=[0-9][0-9]*(\([^)]*\)).*/\1/')"@"
+SSH_LOGIN=""
 
 # Initialize the list of directories to exclude from the sync
 EXCLUDE_LIST=""
@@ -67,6 +65,24 @@ if [ -f ./${CONF_FILE} ] ; then
 else
 	[ -f /etc/${CONF_FILE} ] && source /etc/${CONF_FILE}
 fi
+
+if [ -n "${SSH_LOGIN}" ] ; then
+	eval "SSH_HOME=~${SSH_LOGIN}"
+	if [ -n "SSH_HOME" ] ; then
+		while read i
+		do
+			SSH_IDENTITY=${SSH_IDENTITY}" -i ${i}"
+		# Nightmares with piping into a while read loop. Still better than backticks though.
+		# Note that the triple redirect is bash 3.0 onwards and that the double-quotes 
+		# around the $() are required to produce multiple arguments to read (otherwise the output
+		# of the sub-shell is considered a single argument.	
+		# In a nutshell, loop through all of the files named id* (but not including the string "pub")
+		# in the SSH_LOGIN user's home directory. We'll pass these to ssh to use as potential keys
+		# to use when logging into the remote host.
+		done <<< "$(ls  ${SSH_HOME}/.ssh/id* 2>/dev/null | grep -v pub)"
+	fi
+	SSH_LOGIN=${SSH_LOGIN}"@"
+fi 
 
 get_build()
 {
@@ -228,7 +244,7 @@ printf "\nRetrieving $BUILD_DESC build from $SOURCE_HOST\n"
 # -c	(checksum) skip based on checksum, not mod-time & size (high I/O but potentially less to transmit)
 # ${DELETE_FILES} (--delete) delete extraneous files from dest dirs
 # Note also that all the escaped quotes around the -e option and the :$SOURCE are mandatory - don't be tempted to remove them.
-CMD="${RSYNC} -rlptzuc --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
+CMD="${RSYNC} -rlptzuc --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
 eval ${CMD}
 TRANSFER_RESULT=$?
 

@@ -50,6 +50,7 @@ DEFAULT_LATEST_SUCCESS="L" # Download last available (irrespective of whether a 
 EXCLUDE_APPS=""
 EXCLUDE_DISTRIB=""
 EXCLUDE_PDF=""
+EXCLUDE_WIN=""
 
 # Extract the username of the current user for future use
 #SSH_LOGIN=$(id | sed 's/uid=[0-9][0-9]*(\([^)]*\)).*/\1/')"@"
@@ -220,6 +221,7 @@ set_exclude_list()
 	[ "${EXCLUDE_APPS}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${APPS}"
 	[ "${EXCLUDE_DISTRIB}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${DISTRIB}"
 	[ "${EXCLUDE_PDF}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${PDF}"
+	[ "${EXCLUDE_WIN}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${WINDOWS_EXES}"
 }
 
 # main()
@@ -244,7 +246,7 @@ printf "\nRetrieving $BUILD_DESC build from $SOURCE_HOST\n"
 # -c	(checksum) skip based on checksum, not mod-time & size (high I/O but potentially less to transmit)
 # ${DELETE_FILES} (--delete) delete extraneous files from dest dirs
 # Note also that all the escaped quotes around the -e option and the :$SOURCE are mandatory - don't be tempted to remove them.
-CMD="${RSYNC} -rlptzuc --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
+CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
 eval ${CMD}
 TRANSFER_RESULT=$?
 

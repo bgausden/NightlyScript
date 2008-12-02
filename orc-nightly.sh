@@ -251,7 +251,7 @@ TRANSFER_RESULT=$?
 if [ ${SYSTEM} != ${DARWIN} ] ; then #On a Mac/PC there's no Orc user
 	printf "\nChanging owner and permissions of new Orc\n"
 	cd $DEST_DIR/..
-	CMD="${CHOWN} -R orc:orc ${DEST_DIR}"
+	CMD="${CHOWN} -R orc:orc ${DEST_DIR} 2>/dev/null"
 	#TODO add test for sudo - if permitted then use sudo otherwise try to update owner/group without sudo
 	#sudo ${CMD} > /dev/null 2>&1 || fatal_exit "Unable to update owner & group of ${DEST_DIR} - please check that you are in sudoers and manually update the owner & group of ${DEST_DIR}"
 	eval ${CMD}

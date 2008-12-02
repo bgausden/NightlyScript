@@ -21,3 +21,9 @@
 
 # Whether to retrieve the PDF documentation
 # EXCLUDE_PDF=""
+<<<<<<< HEAD:orc-nightly.conf.example
+=======
+
+# Whether to retrieve Windows apps (.exe & .dll)
+# EXCLUDE_WIN=""
+>>>>>>> 4fb94de7a333926fee277a11673551df6f046c40:orc-nightly.conf.example

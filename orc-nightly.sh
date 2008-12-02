@@ -111,7 +111,7 @@ get_delete()
 	else
 		case ${i} in 
 			y|Y)
-			DELETE_FILES="--delete"
+			DELETE_FILES="--delete --delete-excluded --force"
 			;; 
 			*) 
 			DELETE_FILES=""

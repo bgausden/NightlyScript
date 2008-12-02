@@ -50,6 +50,7 @@ DEFAULT_LATEST_SUCCESS="L" # Download last available (irrespective of whether a 
 EXCLUDE_APPS=""
 EXCLUDE_DISTRIB=""
 EXCLUDE_PDF=""
+EXCLUDE_WIN=""
 
 # Extract the username of the current user for future use
 #SSH_LOGIN=$(id | sed 's/uid=[0-9][0-9]*(\([^)]*\)).*/\1/')"@"
@@ -220,6 +221,7 @@ set_exclude_list()
 	[ "${EXCLUDE_APPS}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${APPS}"
 	[ "${EXCLUDE_DISTRIB}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${DISTRIB}"
 	[ "${EXCLUDE_PDF}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${PDF}"
+	[ "${EXCLUDE_WIN}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${WINDOWS_EXES}"
 }
 
 # main()

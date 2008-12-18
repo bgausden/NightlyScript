@@ -4,6 +4,9 @@
 # The most useful values are (along with their current defaults) are below.
 # Note that for the boolean values, any non-null value is considered "true".
 
+# Which version(s) the script should offer to download/update
+# VERSIONS=(6.1 7.1 8.0 9.0 HEAD)
+
 # Where to download the updates from
 # DEFAULT_SOURCE_HOST=storage.orcsoftware.com
 

@@ -148,16 +148,16 @@ set_path()
 {
 	if [ ${LATEST_OR_SUCCESS}=L ] ; then
 		L_OR_S="latest"
+		BUILD_DESC="latest nightly ${BUILD}"
 	else
 		L_OR_S="success"
+		BUILD_DESC="last successful ${BUILD}"
 	fi
 	if [ ${BUILD} = "HEAD" ] ; then
 		ROOT_DIR="/pub/builds/nightly/${BUILD}/${L_OR_S}/release/orc/"
 	else
-		# Need to change (e.g.) Orc-7.1 to Orc-7-1 to suit the dir structure in Sthlm.
 		ROOT_DIR="/pub/builds/nightly/Orc-${BUILD/\./-}/${L_OR_S}/release/orc/" 
 	fi
-	BUILD_DESC="Nightly ${BUILD}"
 	DEST_DIR="/orcreleases/orc-${BUILD}"
 	SOURCE=${ROOT_DIR}
 	if [ ${SYSTEM} = ${DARWIN} ] ; then
@@ -174,7 +174,6 @@ set_path()
 		${ROOT_DIR}/sdk/liquidator/Examples \
 		${ROOT_DIR}/sdk/op "
 	fi
-	BUILD_DESC="last successful "${BUILD_DESC}
 }
 
 check_destination()

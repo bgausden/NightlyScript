@@ -44,7 +44,7 @@ ISA=$(uname -p | tr "[:lower:]" "[:upper:]") # e.g. sparc, x86_64, i386 -> SPARC
 DEFAULT_SOURCE_HOST=storage.orcsoftware.com #Default server to download from
 ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.
 DEFAULT_BUILD="7.1" # What to download if the user doesn't explictly choose a build to retrieve
-DEFAULT_LATEST_SUCCESS="L" # Download last available (irrespective of whether a complete build) or the last known successful build
+DEFAULT_LATEST_SUCCESS="S" # Download last available (irrespective of whether a complete build) or the last known successful build
 
 # Set EXCLUDE_APPS to a non-null value (e.g. YES) to exclude the Orc apps from the d/l. (Useful for VMs)
 EXCLUDE_APPS=""
@@ -146,7 +146,7 @@ get_latest_or_success()
 
 set_path()
 {
-	if [ ${LATEST_OR_SUCCESS}=L ] ; then
+	if [ ${LATEST_OR_SUCCESS} = "L" ] ; then
 		L_OR_S="latest"
 		BUILD_DESC="latest nightly ${BUILD}"
 	else

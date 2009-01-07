@@ -14,7 +14,7 @@ export PATH=/usr/xpg4/bin:${PATH}
 RSYNC=$(which rsync) || fatal_exit "Unable to locate rsync"
 CHOWN=$(which chown) || fatal_exit "Unable to locate chown"
 # SUDO=$(which sudo) || fatal_exit "Unable to locate sudo"
-      TR=$(which tr) || fatal_exit "Unable to locate tr"
+			TR=$(which tr) || fatal_exit "Unable to locate tr"
 
 # Builds we know about - update this list as builds become (un)available
 unset VERSIONS
@@ -51,6 +51,8 @@ EXCLUDE_APPS=""
 EXCLUDE_DISTRIB=""
 EXCLUDE_PDF=""
 EXCLUDE_WIN=""
+INCLUDE_PAPILLON=""
+INCLUDE_TRADEMONITOR=""
 
 # Extract the username of the current user for future use
 #SSH_LOGIN=$(id | sed 's/uid=[0-9][0-9]*(\([^)]*\)).*/\1/')"@"
@@ -173,6 +175,12 @@ set_path()
 		${ROOT_DIR}/sdk/liquidator/Documentation \
 		${ROOT_DIR}/sdk/liquidator/Examples \
 		${ROOT_DIR}/sdk/op "
+	fi
+	if [ "${INCLUDE_PAPILLON}" ] ; then
+		${ROOT_DIR}="${ROOT_DIR}/../internal/apps/Papillon.app"
+	fi 
+	if [ "INCLUDE_TRADEMONITOR}" ] ; then
+		${ROOT_DIR}="${ROOT_DIR}/../internal/apps/TradeMonitor.app"
 	fi
 }
 

@@ -176,13 +176,6 @@ set_path()
 		${ROOT_DIR}/sdk/liquidator/Examples \
 		${ROOT_DIR}/sdk/op "
 	fi
-	TEMP_ROOT_DIR=${ROOT_DIR}
-	if [ "${INCLUDE_PAPILLON}" ] ; then
-		SOURCE="${SOURCE} ${TEMP_ROOT_DIR}/../internal/apps/Papillon.app"
-	fi 
-	if [ "${INCLUDE_TRADEMONITOR}" ] ; then
-		SOURCE="${SOURCE} ${TEMP_ROOT_DIR}/../internal/apps/TradeMonitor.app"
-	fi
 }
 
 check_destination()
@@ -232,6 +225,53 @@ set_exclude_list()
 	[ "${EXCLUDE_WIN}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${WINDOWS_EXES}"
 }
 
+download_extras()
+{
+	printf "\nPapillon/TradeMonitor download is enabled. Commencing now.\n\n"
+	if [ "${INCLUDE_PAPILLON}" ] ; then
+		SOURCE="${ROOT_DIR}/../internal/apps/Papillon.app"
+	fi 
+	if [ "${INCLUDE_TRADEMONITOR}" ] ; then
+		SOURCE="${SOURCE} ${ROOT_DIR}/../internal/apps/TradeMonitor.app"
+	fi
+	# Note we're using the apps directory as the destination...
+	CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}/apps"
+	eval ${CMD}
+	TRANSFER_RESULT=$?
+	eval_transfer_result()
+}
+
+update_permissions()
+{
+if [ ${SYSTEM} != ${DARWIN} ] ; then #On a Mac/PC there's no Orc user
+	printf "\nChanging owner and permissions of new Orc\n"
+	cd $DEST_DIR/..
+	CMD="${CHOWN} -R orc:orc ${DEST_DIR} 2>/dev/null"
+	#TODO add test for sudo - if permitted then use sudo otherwise try to update owner/group without sudo
+	#sudo ${CMD} > /dev/null 2>&1 || fatal_exit "Unable to update owner & group of ${DEST_DIR} - please check that you are in sudoers and manually update the owner & group of ${DEST_DIR}"
+	eval ${CMD}
+fi
+}
+
+eval_transfer_result()
+{
+case ${TRANSFER_RESULT} in
+	0)	
+	printf "\nSuccessfully installed ${BUILD_DESC} build\n"
+	;;
+
+	23)
+	printf "\nrsync reported \"nothing to transfer\"\n"
+	;;
+
+	*)
+	printf "\nrsync retrieval of "${BUILD_DESC}" reported errors. Please re-run and check the script output.\n"
+	;;
+
+esac
+unset TRANSFER_RESULT
+}
+
 # main()
 get_build
 get_source_host
@@ -257,29 +297,14 @@ printf "\nRetrieving $BUILD_DESC build from $SOURCE_HOST\n"
 CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
 eval ${CMD}
 TRANSFER_RESULT=$?
+eval_transfer_result()
 
-if [ ${SYSTEM} != ${DARWIN} ] ; then #On a Mac/PC there's no Orc user
-	printf "\nChanging owner and permissions of new Orc\n"
-	cd $DEST_DIR/..
-	CMD="${CHOWN} -R orc:orc ${DEST_DIR} 2>/dev/null"
-	#TODO add test for sudo - if permitted then use sudo otherwise try to update owner/group without sudo
-	#sudo ${CMD} > /dev/null 2>&1 || fatal_exit "Unable to update owner & group of ${DEST_DIR} - please check that you are in sudoers and manually update the owner & group of ${DEST_DIR}"
-	eval ${CMD}
+
+# Do a separate rsync for Papillon and/or TradeMonitor
+if [ ${INCLUDE_PAPILLON} -o ${INCLUDE_TRADEMONITOR} ] ; then	
+	download_extras()
 fi
 
-case ${TRANSFER_RESULT} in
-	0)	
-	printf "\nSuccessfully installed ${BUILD_DESC} build\n"
-	;;
-
-	23)
-	printf "\nrsync reported \"nothing to transfer\"\n"
-	;;
-
-	*)
-	printf "\nrsync retrieval of "${BUILD_DESC}" reported errors. Please re-run and check the script output.\n"
-	;;
-
-esac
+update_permissions()
 
 exit 0

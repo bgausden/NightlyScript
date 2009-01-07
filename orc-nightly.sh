@@ -234,8 +234,11 @@ download_extras()
 	if [ "${INCLUDE_TRADEMONITOR}" ] ; then
 		SOURCE="${SOURCE} ${ROOT_DIR}/../internal/apps/TradeMonitor.app"
 	fi
-	# Note we're using the apps directory as the destination...
-	CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}/apps"
+	# On non-Mac systems, put the extras into the apps subdirectory of the destination
+	if [ ${SYSTEM} != ${DARWIN} ] ; then
+		DEST_DIR=${DEST_DIR}/apps
+	fi
+	CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
 	eval ${CMD}
 	TRANSFER_RESULT=$?
 	eval_transfer_result
@@ -302,9 +305,9 @@ eval_transfer_result
 
 # Do a separate rsync for Papillon and/or TradeMonitor
 if [ ${INCLUDE_PAPILLON} -o ${INCLUDE_TRADEMONITOR} ] ; then	
-	download_extras()
+	download_extras
 fi
 
-update_permissions()
+update_permissions
 
 exit 0

@@ -176,11 +176,12 @@ set_path()
 		${ROOT_DIR}/sdk/liquidator/Examples \
 		${ROOT_DIR}/sdk/op "
 	fi
+	TEMP_ROOT_DIR=${ROOT_DIR}
 	if [ "${INCLUDE_PAPILLON}" ] ; then
-		${ROOT_DIR}="${ROOT_DIR}/../internal/apps/Papillon.app"
+		SOURCE="${SOURCE} ${TEMP_ROOT_DIR}/../internal/apps/Papillon.app"
 	fi 
-	if [ "INCLUDE_TRADEMONITOR}" ] ; then
-		${ROOT_DIR}="${ROOT_DIR}/../internal/apps/TradeMonitor.app"
+	if [ "${INCLUDE_TRADEMONITOR}" ] ; then
+		SOURCE="${SOURCE} ${TEMP_ROOT_DIR}/../internal/apps/TradeMonitor.app"
 	fi
 }
 

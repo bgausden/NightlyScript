@@ -238,7 +238,7 @@ download_extras()
 	CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}/apps"
 	eval ${CMD}
 	TRANSFER_RESULT=$?
-	eval_transfer_result()
+	eval_transfer_result
 }
 
 update_permissions()
@@ -297,7 +297,7 @@ printf "\nRetrieving $BUILD_DESC build from $SOURCE_HOST\n"
 CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
 eval ${CMD}
 TRANSFER_RESULT=$?
-eval_transfer_result()
+eval_transfer_result
 
 
 # Do a separate rsync for Papillon and/or TradeMonitor

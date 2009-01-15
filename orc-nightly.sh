@@ -305,7 +305,6 @@ eval ${CMD}
 TRANSFER_RESULT=$?
 eval_transfer_result
 
-
 # Disable this for now. Doesn't really work the way we want.
 # Do a separate rsync for Papillon and/or TradeMonitor
 #if [ ${INCLUDE_PAPILLON} -o ${INCLUDE_TRADEMONITOR} ] ; then	

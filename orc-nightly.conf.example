@@ -17,19 +17,25 @@
 # DEFAULT_LATEST_SUCCESS=L
 
 # Whether to retrieve the apps folder containing Orc.app and Sauron.app
+# BOOL
 # EXCLUDE_APPS=""
 
 # Whether to retrieve the distrib folder containing Orc Monitor
+# BOOL
 # EXCLUDE_DISTRIB=""
 
 # Whether to retrieve the PDF documentation
+# BOOL
 # EXCLUDE_PDF=""
 
 # Whether to retrieve Windows apps (.exe & .dll)
+# BOOL
 # EXCLUDE_WIN=""
 
 # Whether to retrieve Papillon (note this is not prompted for in orc-nightly.sh)
+# BOOL
 # INCLUDE_PAPILLON=""
 
 # Whether to retrieve TradeMonitor
+# BOOL
 # INCLUDE_TRADEMONITOR=""

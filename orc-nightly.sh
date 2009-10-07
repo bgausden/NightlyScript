@@ -18,7 +18,7 @@ CHOWN=$(which chown) || fatal_exit "Unable to locate chown"
 
 # Builds we know about - update this list as builds become (un)available
 unset VERSIONS
-VERSIONS=(6.1 7.1 8.0 TS-9 HEAD)
+VERSIONS=(GW 7.1 8.0 TS-9 HEAD)
 
 # Create an array "SHORT_VERSIONS" which contains only the first character
 # of each element in VERSIONS
@@ -155,7 +155,7 @@ set_path()
 		L_OR_S="success"
 		BUILD_DESC="last successful ${BUILD}"
 	fi
-	if [ ${BUILD} = "HEAD" ] || [ ${BUILD} = "TS-9" ] ; then
+	if [ ${BUILD} = "HEAD" ] || [ ${BUILD} = "TS-9" ] || [ ${BUILD} = "GW" ] ; then
 		ROOT_DIR="/pub/builds/nightly/${BUILD}/${L_OR_S}/release/orc/"
 	else
 		ROOT_DIR="/pub/builds/nightly/Orc-${BUILD/\./-}/${L_OR_S}/release/orc/" 

@@ -129,6 +129,29 @@ get_source_host()
 	[ -z ${SOURCE_HOST} ] && SOURCE_HOST=${DEFAULT_SOURCE_HOST}
 }
 
+# This is slightly problematic. If we exclude PDFs from the sync, and, choose to delete files
+# on the client which aren't on the server, we end up deleting all of the PDFs on the client
+# rather than just skipping syncing them... EXCLUDE_PDF="Y" + DELETE_FILES isn't a good combo.
+get_download_pdf()
+{
+	printf "\n"
+	if [ ${EXCLUDE_PDF} ] ; then
+	 	DOWNLOAD_PDF_CONFIG="N"
+	else
+		DOWNLOAD_PDF_CONFIG="Y"
+	fi
+	read -p "Download PDFs <${DOWNLOAD_PDF_CONFIG}> " DOWNLOAD_PDF
+	[ -z ${DOWNLOAD_PDF} ] && DOWNLOAD_PDF=${DOWNLOAD_PDF_CONFIG}
+	# If we *do* want to download PDFs then we *don't* want to exclude them.
+	# PDFs will be excluded if EXCLUDE_PDF is non-null.
+	# PDFs will be included (downloaded) if EXCLUDE_PDF is null
+	if [ ${DOWNLOAD_PDF} = "Y" -o ${DOWNLOAD_PDF} = "y" ] ; then
+		EXCLUDE_PDF=""
+	else
+		EXCLUDE_PDF="Y"
+	fi
+}
+
 get_latest_or_success()
 {
         printf "\n"
@@ -281,6 +304,7 @@ unset TRANSFER_RESULT
 # main()
 get_build
 get_source_host
+get_download_pdf
 get_delete
 get_latest_or_success
 set_path
@@ -294,6 +318,7 @@ printf "\nRetrieving $BUILD_DESC build from $SOURCE_HOST\n"
 # -l	copy symlinks as symlinks
 # -p	preserve permissions
 # -t	preserve times
+# -O	omit directories from timestamp preservation
 # -v	increase verbosity
 # -z	compress file data during the transfer
 # -u	(update) skip files that are newer on the receiver

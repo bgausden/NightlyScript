@@ -188,17 +188,11 @@ set_path()
 	SOURCE=${ROOT_DIR}
 	if [ ${SYSTEM} = ${DARWIN} ] ; then
 		DEST_DIR="/Applications/Orc-"${BUILD}
-		SOURCE="	${ROOT_DIR}/apps/Orc.app \
-		${ROOT_DIR}/apps/Sauron.app \
+		SOURCE="	${ROOT_DIR}/apps/ \
 		${ROOT_DIR}/lib/liquidator.jar \
 		${ROOT_DIR}/lib/lprofiler.jar \
-		${ROOT_DIR}/apps/Documentation/OrcTraderManual.pdf \
-		${ROOT_DIR}/apps/Documentation/ReleaseNotes.pdf \
-		${ROOT_DIR}/apps/Documentation/MarketLinks.pdf \
 		${ROOT_DIR}/doc \
-		${ROOT_DIR}/sdk/liquidator/Documentation \
-		${ROOT_DIR}/sdk/liquidator/Examples \
-		${ROOT_DIR}/sdk/op "
+		${ROOT_DIR}/sdk "
 	fi
 }
 

@@ -155,12 +155,13 @@ set_path()
 		L_OR_S="success"
 		BUILD_DESC="last successful ${BUILD}"
 	fi
-	if [ ${BUILD} = "HEAD" ] || [ ${BUILD} = "TS-9" ] || [ ${BUILD} = "GW" ] ; then
+	if [ ${BUILD} = "HEAD" ] || [[ ${BUILD} =~ "TS-*" ]] || [ ${BUILD} = "GW" ] ; then
 		ROOT_DIR="/pub/builds/nightly/${BUILD}/${L_OR_S}/release/orc/"
+		DEST_DIR="/orcreleases/${BUILD}"
 	else
 		ROOT_DIR="/pub/builds/nightly/Orc-${BUILD/\./-}/${L_OR_S}/release/orc/" 
+		DEST_DIR="/orcreleases/orc-${BUILD}"
 	fi
-	DEST_DIR="/orcreleases/orc-${BUILD}"
 	SOURCE=${ROOT_DIR}
 	if [ ${SYSTEM} = ${DARWIN} ] ; then
 		DEST_DIR="/Applications/Orc-"${BUILD}

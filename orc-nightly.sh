@@ -178,7 +178,7 @@ set_path()
 		L_OR_S="success"
 		BUILD_DESC="last successful ${BUILD}"
 	fi
-	if [ ${BUILD} = "HEAD" ] || [[ ${BUILD} =~ "TS-*" ]] || [ ${BUILD} = "GW" ] ; then
+	if [ ${BUILD} = "HEAD" ] || [[ ${BUILD} =~ TS-* ]] || [ ${BUILD} = "GW" ] ; then
 		ROOT_DIR="/pub/builds/nightly/${BUILD}/${L_OR_S}/release/orc/"
 		DEST_DIR="/orcreleases/${BUILD}"
 	else
@@ -186,8 +186,13 @@ set_path()
 		DEST_DIR="/orcreleases/orc-${BUILD}"
 	fi
 	SOURCE=${ROOT_DIR}
-	if [ ${SYSTEM} = ${DARWIN} ] ; then
-		DEST_DIR="/Applications/Orc-"${BUILD}
+
+	if [ ${SYSTEM} = ${DARWIN} ] ; then 								# MacOSX only
+		if [ ${BUILD} = "HEAD" ] || [[ ${BUILD} =~ TS-* ]] || [ ${BUILD} = "GW" ] ; then	# non-numeric releases don't get the Orc- prefix
+			DEST_DIR="/Applications/Orc/"${BUILD}
+		else
+			DEST_DIR="/Applications/Orc/Orc-"${BUILD}																					# numeric releases do get the Orc- prefix
+		fi
 		SOURCE="	${ROOT_DIR}/apps/ \
 		${ROOT_DIR}/lib/liquidator.jar \
 		${ROOT_DIR}/lib/lprofiler.jar \

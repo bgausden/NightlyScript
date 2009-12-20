@@ -14,11 +14,11 @@ export PATH=/usr/xpg4/bin:${PATH}
 RSYNC=$(which rsync) || fatal_exit "Unable to locate rsync"
 CHOWN=$(which chown) || fatal_exit "Unable to locate chown"
 # SUDO=$(which sudo) || fatal_exit "Unable to locate sudo"
-			TR=$(which tr) || fatal_exit "Unable to locate tr"
+TR=$(which tr) || fatal_exit "Unable to locate tr"
 
 # Builds we know about - update this list as builds become (un)available
 unset VERSIONS
-VERSIONS=(GW 7.1 8.0 TS-9 HEAD)
+VERSIONS=(GW TS-9 HEAD)
 
 # Create an array "SHORT_VERSIONS" which contains only the first character
 # of each element in VERSIONS
@@ -46,6 +46,12 @@ ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source
 DEFAULT_BUILD="7.1" # What to download if the user doesn't explictly choose a build to retrieve
 DEFAULT_LATEST_SUCCESS="S" # Download last available (irrespective of whether a complete build) or the last known successful build
 
+# Initialize the list of files/directories to exclude from the sync
+EXCLUDE_LIST=""
+
+# Initialize the path to a file containing additional files to exclude from the sync (defaults to /etc/orc_nightly_exclude)
+EXCLUDE_FILE_PATH="/etc/orc-nightly-exclude"
+
 # Set EXCLUDE_APPS to a non-null value (e.g. YES) to exclude the Orc apps from the d/l. (Useful for VMs)
 EXCLUDE_APPS=""
 EXCLUDE_DISTRIB=""
@@ -53,13 +59,11 @@ EXCLUDE_PDF=""
 EXCLUDE_WIN=""
 INCLUDE_PAPILLON=""
 INCLUDE_TRADEMONITOR=""
+EXCLUDE_FILE=""
 
 # Extract the username of the current user for future use
 #SSH_LOGIN=$(id | sed 's/uid=[0-9][0-9]*(\([^)]*\)).*/\1/')"@"
 SSH_LOGIN=""
-
-# Initialize the list of directories to exclude from the sync
-EXCLUDE_LIST=""
 
 # Source a config file which can override the script variables e.g. EXCLUDE_APPS
 CONF_FILE=orc-nightly.conf
@@ -248,6 +252,14 @@ set_exclude_list()
 	[ "${EXCLUDE_WIN}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${WINDOWS_EXES}"
 }
 
+set_exclude_file()
+{
+	EXCLUDE_FILE=""
+	if [ -f ${EXCLUDE_FILE_PATH} ] ; then
+		EXCLUDE_FILE="--exclude-from="${EXCLUDE_FILE_PATH}
+	fi
+}
+
 download_extras()
 # This doesn't work well as the directory tree on the local systems doesn't really match what's in Sthlm. Getting everything in the right place in a 
 # consistent manner is ugly as hell. There's also the small problem that nightly builds of Pap aren't useable - they seem to be hard-coded to
@@ -264,7 +276,7 @@ download_extras()
 	if [ ${SYSTEM} != ${DARWIN} ] ; then
 		DEST_DIR=${DEST_DIR}/apps
 	fi
-	CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
+	CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
 	eval ${CMD}
 	TRANSFER_RESULT=$?
 	eval_transfer_result
@@ -310,6 +322,7 @@ get_latest_or_success
 set_path
 check_destination
 set_exclude_list
+set_exclude_file
 
 printf "\nRetrieving $BUILD_DESC build from $SOURCE_HOST\n"
 
@@ -325,7 +338,7 @@ printf "\nRetrieving $BUILD_DESC build from $SOURCE_HOST\n"
 # -c	(checksum) skip based on checksum, not mod-time & size (high I/O but potentially less to transmit)
 # ${DELETE_FILES} (--delete) delete extraneous files from dest dirs
 # Note also that all the escaped quotes around the -e option and the :$SOURCE are mandatory - don't be tempted to remove them.
-CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
+CMD="${RSYNC} -rlptzucmO --progress ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
 eval ${CMD}
 TRANSFER_RESULT=$?
 eval_transfer_result

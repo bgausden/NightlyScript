@@ -337,8 +337,9 @@ printf "\nRetrieving $BUILD_DESC build from $SOURCE_HOST\n"
 # -u	(update) skip files that are newer on the receiver
 # -c	(checksum) skip based on checksum, not mod-time & size (high I/O but potentially less to transmit)
 # ${DELETE_FILES} (--delete) delete extraneous files from dest dirs
+# Note: Do not be tempted to add -m - this will delete the log folder from the system and the Orc binaries won't start
 # Note also that all the escaped quotes around the -e option and the :$SOURCE are mandatory - don't be tempted to remove them.
-CMD="${RSYNC} -rlptzucmO --progress ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
+CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
 eval ${CMD}
 TRANSFER_RESULT=$?
 eval_transfer_result

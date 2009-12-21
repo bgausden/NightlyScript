@@ -20,6 +20,17 @@ libESPD.so
 libemapi_turquoise.so
 libNBRFIX.a
 libeuronextutpgw.so
+libmgf.so
+libxetraetsgw.so
+libsailgw.so
+libalphagw.so
+liblsemdgw.so
+libACE-5.6.6.so
+libxetraetsIfxStorageDriver.so
+liblsemdIfxStorageDriver.so
+libsailIfxStorageDriver.so
+libalphaIfxStorageDriver.so
+
 
 activ2d
 activ3d

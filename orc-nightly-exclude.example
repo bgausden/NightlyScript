@@ -1,35 +1,27 @@
 libmgf.so
 libswxmdigw.so
-libutpdirectgw.so
 libitchgw.so
-libburgundygw.so
 libespeedgw.so
-libouchgw.so
 libdifxgw.so
 libturquoisegw.so
 libneuroitchgw.so
 libmpgw.so
-libeurexetsgw.so
-libACE-5.6.6.so
-libACE.so
+libACE*
 libsfc.so
 libchipolino.so
-libeurexetsgw.120.so
-libeurexetsgw.110.so
 libESPD.so
 libemapi_turquoise.so
 libNBRFIX.a
-libeuronextutpgw.so
 libmgf.so
-libxetraetsgw.so
 libsailgw.so
 libalphagw.so
 liblsemdgw.so
-libACE-5.6.6.so
-libxetraetsIfxStorageDriver.so
-liblsemdIfxStorageDriver.so
-libsailIfxStorageDriver.so
-libalphaIfxStorageDriver.so
+*Ifx*
+*ets*
+*utp*
+*burgundy*
+*ouch*
+*itch*
 
 
 activ2d
@@ -38,9 +30,6 @@ activd
 arcaoptionsd
 bdmd
 boxd
-burgundyfixd
-burgundygwd
-burgundy_unittest
 cboecmid
 cboecmimdd
 cboed
@@ -57,7 +46,6 @@ eurexd.s
 eurexetsgwd.110
 eurexetsgwd.120
 euronextd
-euronextutpgwd
 euwaxd
 fastinstr
 fastmd
@@ -103,13 +91,11 @@ tsx_order_compact
 tsx_order_dump
 udpcollect
 usoptionsd
-utpdirectgwd
 xetraebsd
 
 models
 
 libxetraetsgw.so
-libeuronextutpgw.so
 libhsvfgw.so
 fortsd
 libsailgw.so

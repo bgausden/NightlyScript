@@ -290,7 +290,7 @@ case ${TRANSFER_RESULT} in
 	;;
 
 	23)
-	printf "\nrsync reported \"nothing to transfer\"\n"
+	printf "\nrsync reported \"unable to transfer some files\"\n"
 	;;
 
 	*)

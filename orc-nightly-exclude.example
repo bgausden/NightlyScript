@@ -125,6 +125,7 @@ tsx_order_dump
 turquoisegwd
 udpcollect
 usoptionsd
+*utpdirect*
 *xetra*
 xetraebsd
 xqsd

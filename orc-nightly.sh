@@ -43,7 +43,7 @@ ISA=$(uname -p | tr "[:lower:]" "[:upper:]") # e.g. sparc, x86_64, i386 -> SPARC
 
 DEFAULT_SOURCE_HOST=storage.orcsoftware.com #Default server to download from
 ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.
-DEFAULT_BUILD="7.1" # What to download if the user doesn't explictly choose a build to retrieve
+DEFAULT_BUILD="TS-9" # What to download if the user doesn't explictly choose a build to retrieve
 DEFAULT_LATEST_SUCCESS="S" # Download last available (irrespective of whether a complete build) or the last known successful build
 
 # Initialize the list of files/directories to exclude from the sync
@@ -182,13 +182,21 @@ set_path()
 		L_OR_S="success"
 		BUILD_DESC="last successful ${BUILD}"
 	fi
-	if [ ${BUILD} = "HEAD" ] || [[ ${BUILD} =~ TS-* ]] || [ ${BUILD} = "GW" ] ; then
-		ROOT_DIR="/pub/builds/nightly/${BUILD}/${L_OR_S}/release/orc/"
-		DEST_DIR="/orcreleases/${BUILD}"
-	else
-		ROOT_DIR="/pub/builds/nightly/Orc-${BUILD/\./-}/${L_OR_S}/release/orc/" 
-		DEST_DIR="/orcreleases/orc-${BUILD}"
-	fi
+	case ${BUILD} in
+		HEAD|TS*)
+			ROOT_DIR="/pub/builds/nightly/${BUILD}/${L_OR_S}/release/orc/"
+			DEST_DIR="/orcreleases/${BUILD}"
+			;;
+		GW*)
+			ROOT_DIR="/pub/builds/nightly/${BUILD}/${L_OR_S}/release/gateways/"
+			DEST_DIR="/orcreleases/${BUILD}"
+			;;
+		*)
+			ROOT_DIR="/pub/builds/nightly/Orc-${BUILD/\./-}/${L_OR_S}/release/orc/" 
+			DEST_DIR="/orcreleases/orc-${BUILD}"
+			;;
+	esac
+	
 	SOURCE=${ROOT_DIR}
 
 	if [ ${SYSTEM} = ${DARWIN} ] ; then 								# MacOSX only

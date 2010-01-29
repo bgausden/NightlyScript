@@ -116,8 +116,14 @@ get_delete()
 		DELETE_FILES=''
 	else
 		case ${i} in 
-			y|Y)
+			a|A)
+			# Secret option. Deletes files on destination which have been excluded from sync
+			# Generally not needed (nor desired) but handy when trimming the contents of the
+			# destination to match the source (taking into account excludes)
 			DELETE_FILES="--delete --delete-excluded --force"
+			;; 
+			y|Y)
+			DELETE_FILES="--delete --force"
 			;; 
 			*) 
 			DELETE_FILES=""
@@ -183,11 +189,11 @@ set_path()
 		BUILD_DESC="last successful ${BUILD}"
 	fi
 	case ${BUILD} in
-		HEAD|TS*)
+		HEAD|TS*|GW*)
 			ROOT_DIR="/pub/builds/nightly/${BUILD}/${L_OR_S}/release/orc/"
 			DEST_DIR="/orcreleases/${BUILD}"
 			;;
-		GW*)
+		*MIN)
 			ROOT_DIR="/pub/builds/nightly/${BUILD}/${L_OR_S}/release/gateways/"
 			DEST_DIR="/orcreleases/${BUILD}"
 			;;

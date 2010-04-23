@@ -30,6 +30,7 @@ done
 
 # Known systems - need to add new platforms to this list as needed e.g. if we support Power going forward
 DARWIN="DARWIN"
+WINDOWS="CYGWIN_NT-6.1-WOW64"
 SUNOS="SUNOS"
 LINUX="LINUX"
 
@@ -210,6 +211,18 @@ set_path()
 			DEST_DIR="/Applications/Orc/"${BUILD}
 		else
 			DEST_DIR="/Applications/Orc/Orc-"${BUILD}																					# numeric releases do get the Orc- prefix
+		fi
+		SOURCE="	${ROOT_DIR}/apps/ \
+		${ROOT_DIR}/lib/liquidator.jar \
+		${ROOT_DIR}/lib/lprofiler.jar \
+		${ROOT_DIR}/doc \
+		${ROOT_DIR}/sdk "
+	fi
+	if [ ${SYSTEM} = ${WINDOWS} ] ; then 								# Win only
+		if [ ${BUILD} = "HEAD" ] || [[ ${BUILD} =~ TS-* ]] || [ ${BUILD} = "GW" ] ; then	# non-numeric releases don't get the Orc- prefix
+			DEST_DIR="\"/cygdrive/c/Users/jeanm/Orc/"${BUILD}\"
+		else
+			DEST_DIR="\"/cygdrive/c/Users/jeanm/Orc/Orc-"${BUILD}\"																					# numeric releases do get the Orc- prefix
 		fi
 		SOURCE="	${ROOT_DIR}/apps/ \
 		${ROOT_DIR}/lib/liquidator.jar \

@@ -1,12 +1,47 @@
 #!/usr/bin/env bash 
 
 # Script to retrieve orc nightly builds via ssh/rsync
+# What is downloaded and from where can be set via command-line options, a config file or by fail-safe defaults in the script itself.
+# The command-line options are explained below.
+# The config file will be sourced by this script and must be called orc-nightly.conf and reside either in CWD or in /etc/orc.
+# Failsafe values for the script variables are called DEFAULT_* in the script.
 
 fatal_exit()
 {
-	[ -n "${1:+x}" ] && printf "%s\n${1}. Aborting"
+	[ -n "${1:+x}" ] && printf "%s\n${1}. Aborting.\n"
 	exit 1
 }
+
+usage()
+{
+	cat <<- EOF
+
+	Unknown option: "${OPTARG}"
+
+	Usage: $(basename $0) [-a][-c][-d][-o][-h <host>][-l][-p][-r <build>][-s][-t][-w] 
+
+	Supported options are:
+		-a        Download all builds (as set in /etc/orc-nightly.conf or as defined as default values in this script
+		-c        Exclude client applications e.g. Orc Trader & Sauron
+		-d        Delete files which do not exist on the server but exist on the client system
+		-o        Exclude contents of <orc install dir>/distrib
+		-h				Download host - requires an argument - the host to download from
+		-l        Download the latest available nightly build (mutually exclusive with -s)
+		-p        Exclude PDF's e.g. manuals
+		-r				Which build to download - requires an argument - the desired build e.g. TS-9
+		-s        Download the last successful nightly build (mutually exclusive with -l)
+		-t				Include the Trade Monitor client app (excluded by default)
+		-w        Exclude windows components e.g. exes and dlls
+	EOF
+}
+
+# The command-line gets clobbered so we need to save it now for parsing later on.
+if [ $# -gt 0 ] ; then
+	CMD_LINE="$@"
+	HAVE_OPTS=$#
+else
+	HAVE_OPTS=0
+fi
 
 # Add /usr/xpg4/bin to path to use the XPG4 version of tr on Solaris systems, otherwise the script breaks if the locale is (e.g.) UTF8
 export PATH=/usr/xpg4/bin:${PATH}
@@ -42,10 +77,12 @@ SPARC="SPARC"
 SYSTEM=$(uname -s | tr "[:lower:]" "[:upper:]")	# e.g SunOS, Linux, Darwin -> SUNOS, LINUX, DARWIN
 ISA=$(uname -p | tr "[:lower:]" "[:upper:]") # e.g. sparc, x86_64, i386 -> SPARC, X86_64, I386
 
+# Failsafe default values
 DEFAULT_SOURCE_HOST=scp.orcsoftware.com #Default server to download from
 ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.
 DEFAULT_BUILD="TS-9" # What to download if the user doesn't explictly choose a build to retrieve
-DEFAULT_LATEST_SUCCESS="S" # Download last available (irrespective of whether a complete build) or the last known successful build
+BUILD=${DEFAULT_BUILD}
+DEFAULT_LATEST_SUCCESS="L" # Download last available (irrespective of whether a complete build) or the last known successful build
 
 # Initialize the list of files/directories to exclude from the sync
 EXCLUDE_LIST=""
@@ -91,12 +128,75 @@ if [ -n "${SSH_LOGIN}" ] ; then
 	SSH_LOGIN=${SSH_LOGIN}"@"
 fi 
 
+parse_opts()
+{
+	# Run through any arguments to make sure they're sane
+	while getopts ":acdpwtr:lsdkh:" OPTION ${CMD_LINE}
+do
+	case ${OPTION} in
+		a)
+		# Download all configured builds (as seen in VERSIONS)
+		ALL_VERSIONS=1
+		;;
+		c)
+		# Exclude client applications
+		EXCLUDE_APPS=1 
+		;;
+		o)
+		#Exclude contents of distrib e.g. orc monitor
+		EXCLUDE_DISTRIB=1
+		;;
+		p)
+		# Exclude PDFs e.g. manuals
+		EXCLUDE_PDF=1
+		;;
+		w)
+		# Exclude Windows components e.g. exes and dlls
+		EXCLUDE_WIN=1
+		;;
+		t)
+		# Include Trade Monitor
+		INCLUDE_TRADEMONITOR=1
+		;;
+		r)
+		# Which build to download - requires argument
+		BUILD=${OPTARG}
+		;;
+		l)
+		# Download latest Nightly
+		LATEST_OR_SUCCESS=L
+		;;
+		s)
+		# Download last successful Nightly build
+		LATEST_OR_SUCCESS=S
+		;;
+		d)
+		# Delete files which do not exist on the server and are within the synced directories
+		DELETE_FILES="--delete --force"
+		;;
+		k)
+		# Delete files which do not exist on server even if in directories specifically excluded from sync
+		DELETE_FILES="--delete --delete-excluded --force"
+		;;
+		h)
+		# Host to sync with - requires argument
+		SOURCE_HOST=${OPTARG}
+		;;
+		*)
+		usage
+		fatal_exit "Bad command-line option"
+		;;
+	esac
+done
+}
+
 get_build()
 {
 	PS3="Which build should be downloaded? "
 	printf "\n"
 	select i in ${VERSIONS[@]}
 do
+	#TODO I think I was planning to do something in here - can't remember what...
 	break
 done
 if [ -n "${i}" ] ; then
@@ -334,11 +434,20 @@ unset TRANSFER_RESULT
 }
 
 # main()
-get_build
-get_source_host
-get_download_pdf
-get_delete
-get_latest_or_success
+parse_opts
+if [ ${HAVE_OPTS} -eq 0 ] ; then
+	# Prompt user for download options
+	get_build
+	get_source_host
+	get_download_pdf
+	get_delete
+  get_latest_or_success
+else
+	[ -z ${BUILD} ] && BUILD=${DEFAULT_BUILD}
+	[ -z ${SOURCE_HOST} ] && SOURCE_HOST=${DEFAULT_SOURCE_HOST}
+	[ -z ${DELETE} ] && DELETE=${DEFAULT_DELETE}
+	[ -z ${LATEST_OR_SUCCESS} ] && LATEST_OR_SUCCESS=${DEFAULT_LATEST_OR_SUCCESS}
+fi
 set_path
 check_destination
 set_exclude_list

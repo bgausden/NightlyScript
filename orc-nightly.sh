@@ -58,7 +58,6 @@ EXCLUDE_APPS=""
 EXCLUDE_DISTRIB=""
 EXCLUDE_PDF=""
 EXCLUDE_WIN=""
-INCLUDE_PAPILLON=""
 INCLUDE_TRADEMONITOR=""
 EXCLUDE_FILE=""
 
@@ -288,14 +287,8 @@ set_exclude_file()
 }
 
 download_extras()
-# This doesn't work well as the directory tree on the local systems doesn't really match what's in Sthlm. Getting everything in the right place in a 
-# consistent manner is ugly as hell. There's also the small problem that nightly builds of Pap aren't useable - they seem to be hard-coded to
-# point to a test keycode file.
+# This doesn't work well as the directory tree on the local systems doesn't really match what's in Sthlm. Getting everything in the right place in a consistent manner is ugly as hell.
 {
-	printf "\nPapillon/TradeMonitor download is enabled. Commencing now.\n\n"
-	if [ "${INCLUDE_PAPILLON}" ] ; then
-		SOURCE="${ROOT_DIR}/../internal/apps/Papillon.app"
-	fi 
 	if [ "${INCLUDE_TRADEMONITOR}" ] ; then
 		SOURCE="${SOURCE} ${ROOT_DIR}/../internal/apps/TradeMonitor.app"
 	fi
@@ -372,8 +365,8 @@ TRANSFER_RESULT=$?
 eval_transfer_result
 
 # Disable this for now. Doesn't really work the way we want.
-# Do a separate rsync for Papillon and/or TradeMonitor
-#if [ ${INCLUDE_PAPILLON} -o ${INCLUDE_TRADEMONITOR} ] ; then	
+# Do a separate rsync for TradeMonitor
+#if [ "${INCLUDE_TRADEMONITOR}" ] ; then	
 #	download_extras
 #fi
 

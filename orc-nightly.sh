@@ -14,9 +14,8 @@ fatal_exit()
 
 usage()
 {
+	printf "\n"
 	cat <<- EOF
-
-	Unknown option: "${OPTARG}"
 
 	Usage: $(basename $0) [-a][-c][-d][-o][-h <host>][-l][-p][-r <build>][-s][-t][-w] 
 
@@ -24,14 +23,47 @@ usage()
 		-a        Download all builds (as set in /etc/orc-nightly.conf or as defined as default values in this script
 		-c        Exclude client applications e.g. Orc Trader & Sauron
 		-d        Delete files which do not exist on the server but exist on the client system
-		-o        Exclude contents of <orc install dir>/distrib
-		-h				Download host - requires an argument - the host to download from
+		-h        Help
 		-l        Download the latest available nightly build (mutually exclusive with -s)
+		-o        Exclude contents of <orc install dir>/distrib
 		-p        Exclude PDF's e.g. manuals
 		-r				Which build to download - requires an argument - the desired build e.g. TS-9
-		-s        Download the last successful nightly build (mutually exclusive with -l)
+		-s				Download source - requires an argument - the host to download from
 		-t				Include the Trade Monitor client app (excluded by default)
+		-u        Download the last successful nightly build (mutually exclusive with -l)
 		-w        Exclude windows components e.g. exes and dlls
+
+	EOF
+}
+
+description()
+{
+	cat <<-EOF
+
+	Description: $(basename $0) is a script for downloading via rsync the nightly builds from (typically) Stockholm, via rsync.
+
+	The script provides for downloading either the most recent or the last successful nightly build for any of the 
+	available Orc releases, both TS and GW.
+
+  The script accepts a number of command-line options (see Usage) and will also read from a config file which
+	is sourced from either $CWD/orc-nightly-config or /etc/orc-nightly-config. If no command-line options are 
+	provided and there is no config file found, the script will fall back to hard-coded fail-safe parameters.
+
+	In addition to the config file, the script will read ./orc-nightly-exclude or /etc/orc-nightly-exclude from
+	which a list of filename patterns to exclude from the synchronization will be read. The file accepts both
+	full and partial pathnames and will perform variable expansion and globbing on the patterns when determining
+	which files/directories to exclude.
+
+	The script utilizes SSH to connect to the source. rsync then tunnels vi the SSH connection. If a username is
+	specified on the command-line or via the config file, the script will locate all SSH keys in the nominated
+	user's $HOME/.ssh/ directory and will use these when attempting to make the SSH connection. If no valid keys
+	are found, and if the server permits it, the user will be prompted for a password with which to log in.
+
+	The script requires a directory structure on the destination which mimics that found on the Stockholm servers i.e.
+
+	/pub/builds/nightly/GW/latest/release/orc --soft linked-> /orcreleases/GW/
+	
+	If the destination path does not exist the script will prompt the user to either proceed (and create the required path) or to abort.
 	EOF
 }
 
@@ -82,13 +114,13 @@ DEFAULT_SOURCE_HOST=scp.orcsoftware.com #Default server to download from
 ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.
 DEFAULT_BUILD="TS-9" # What to download if the user doesn't explictly choose a build to retrieve
 BUILD=${DEFAULT_BUILD}
-DEFAULT_LATEST_SUCCESS="L" # Download last available (irrespective of whether a complete build) or the last known successful build
+DEFAULT_LATEST_OR_SUCCESS="L" # Download last available (irrespective of whether a complete build) or the last known successful build
 
 # Initialize the list of files/directories to exclude from the sync
 EXCLUDE_LIST=""
 
-# Initialize the path to a file containing additional files to exclude from the sync (defaults to /etc/orc_nightly_exclude)
-EXCLUDE_FILE_PATH="/etc/orc-nightly-exclude"
+# Initialize array of paths to search for a file containing additional filename patterns to exclude from the sync
+EXCLUDE_FILE_PATHS=("./orc-nightly-exclude" "/etc/orc-nightly-exclude")
 
 # Set EXCLUDE_APPS to a non-null value (e.g. YES) to exclude the Orc apps from the d/l. (Useful for VMs)
 EXCLUDE_APPS=""
@@ -110,6 +142,7 @@ else
 	[ -f /etc/${CONF_FILE} ] && source /etc/${CONF_FILE}
 fi
 
+# Create a list of ssh identities (keys) which which to try logging in to the source
 if [ -n "${SSH_LOGIN}" ] ; then
 	eval "SSH_HOME=~${SSH_LOGIN}"
 	if [ -n "SSH_HOME" ] ; then
@@ -131,16 +164,35 @@ fi
 parse_opts()
 {
 	# Run through any arguments to make sure they're sane
-	while getopts ":acdpwtr:lsdkh:" OPTION ${CMD_LINE}
+	while getopts "acdhlkpr:s:twu" OPTION ${CMD_LINE}
 do
 	case ${OPTION} in
 		a)
 		# Download all configured builds (as seen in VERSIONS)
+		# TODO implement this
 		ALL_VERSIONS=1
 		;;
 		c)
 		# Exclude client applications
 		EXCLUDE_APPS=1 
+		;;
+		d)
+		# Delete files which do not exist on the server and are within the synced directories
+		DELETE_FILES="--delete --force"
+		;;
+		h)
+		# Show help
+		description
+		usage
+		fatal_exit ""
+		;;
+		k)
+		# Delete files which do not exist on server even if in directories specifically excluded from sync
+		DELETE_FILES="--delete --delete-excluded --force"
+		;;
+		l)
+		# Download latest Nightly
+		LATEST_OR_SUCCESS=L
 		;;
 		o)
 		#Exclude contents of distrib e.g. orc monitor
@@ -150,39 +202,28 @@ do
 		# Exclude PDFs e.g. manuals
 		EXCLUDE_PDF=1
 		;;
-		w)
-		# Exclude Windows components e.g. exes and dlls
-		EXCLUDE_WIN=1
+		r)
+		# Which build to download - requires argument
+		BUILD=${OPTARG}
+		;;
+		s)
+		# Host to sync with - requires argument
+		SOURCE_HOST=${OPTARG}
 		;;
 		t)
 		# Include Trade Monitor
 		INCLUDE_TRADEMONITOR=1
 		;;
-		r)
-		# Which build to download - requires argument
-		BUILD=${OPTARG}
+		w)
+		# Exclude Windows components e.g. exes and dlls
+		EXCLUDE_WIN=1
 		;;
-		l)
-		# Download latest Nightly
-		LATEST_OR_SUCCESS=L
-		;;
-		s)
+		u)
 		# Download last successful Nightly build
 		LATEST_OR_SUCCESS=S
 		;;
-		d)
-		# Delete files which do not exist on the server and are within the synced directories
-		DELETE_FILES="--delete --force"
-		;;
-		k)
-		# Delete files which do not exist on server even if in directories specifically excluded from sync
-		DELETE_FILES="--delete --delete-excluded --force"
-		;;
-		h)
-		# Host to sync with - requires argument
-		SOURCE_HOST=${OPTARG}
-		;;
 		*)
+		printf "%s\nUnknown option: ${OPTARG}"
 		usage
 		fatal_exit "Bad command-line option"
 		;;
@@ -380,10 +421,10 @@ set_exclude_list()
 
 set_exclude_file()
 {
-	EXCLUDE_FILE=""
-	if [ -f ${EXCLUDE_FILE_PATH} ] ; then
-		EXCLUDE_FILE="--exclude-from="${EXCLUDE_FILE_PATH}
-	fi
+	for i in ${EXCLUDE_FILE_PATHS[*]}
+	do
+		[ -f ${i} ] && EXCLUDE_FILE="--exclude-from="$i
+	done
 }
 
 download_extras()
@@ -393,9 +434,7 @@ download_extras()
 		SOURCE="${SOURCE} ${ROOT_DIR}/../internal/apps/TradeMonitor.app"
 	fi
 	# On non-Mac systems, put the extras into the apps subdirectory of the destination
-	if [ ${SYSTEM} != ${DARWIN} ] ; then
-		DEST_DIR=${DEST_DIR}/apps
-	fi
+	[ ${SYSTEM} != ${DARWIN} ] && DEST_DIR=${DEST_DIR}/apps
 	CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
 	eval ${CMD}
 	TRANSFER_RESULT=$?

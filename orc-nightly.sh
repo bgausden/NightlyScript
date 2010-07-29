@@ -68,11 +68,11 @@ description()
 }
 
 # The command-line gets clobbered so we need to save it now for parsing later on.
-if [ $# -gt 0 ] ; then
+if (( $# > 0 )) ; then
 	CMD_LINE="$@"
-	HAVE_OPTS=$#
+	HAVE_OPTS=true
 else
-	HAVE_OPTS=0
+	HAVE_OPTS=false
 fi
 
 # Add /usr/xpg4/bin to path to use the XPG4 version of tr on Solaris systems, otherwise the script breaks if the locale is (e.g.) UTF8
@@ -87,13 +87,14 @@ TR=$(which tr) || fatal_exit "Unable to locate tr"
 unset VERSIONS
 VERSIONS=(GW TS-9 HEAD)
 
+#TODO Remove this - array syntax looks broken so probably never worked
 # Create an array "SHORT_VERSIONS" which contains only the first character
 # of each element in VERSIONS
-unset SHORT_VERSIONS
-for i in ${VERSIONS[@]}
-do
-	SHORT_VERSIONS=(${SHORT_VERSIONS} $i)
-done
+#unset SHORT_VERSIONS
+#for i in ${VERSIONS[@]}
+#do
+#	SHORT_VERSIONS=(${SHORT_VERSIONS} $i)
+#done
 
 # Known systems - need to add new platforms to this list as needed e.g. if we support Power going forward
 DARWIN="DARWIN"
@@ -134,6 +135,7 @@ EXCLUDE_FILE=""
 #SSH_LOGIN=$(id | sed 's/uid=[0-9][0-9]*(\([^)]*\)).*/\1/')"@"
 SSH_LOGIN=""
 
+#TODO change to iterating through an array of locations
 # Source a config file which can override the script variables e.g. EXCLUDE_APPS
 CONF_FILE=orc-nightly.conf
 if [ -f ./${CONF_FILE} ] ; then 
@@ -170,7 +172,7 @@ do
 		a)
 		# Download all configured builds (as seen in VERSIONS)
 		# TODO implement this
-		ALL_VERSIONS=1
+		ALL_VERSIONS=true
 		;;
 		c)
 		# Exclude client applications
@@ -233,19 +235,24 @@ done
 
 get_build()
 {
+if [ ${ALL_VERSIONS} ] ; then
+	printf "%s\nDownloading all available builds\n"
+	unset BUILD
+	for i in ${VERSIONS[@]} ; do BUILD[${#BUILD[*]}]=$i ; done
+else
 	PS3="Which build should be downloaded? "
 	printf "\n"
-	select i in ${VERSIONS[@]}
-do
-	#TODO I think I was planning to do something in here - can't remember what...
-	break
-done
-if [ -n "${i}" ] ; then
-	BUILD="${i}"
-	printf "%s\nDownloading ${BUILD}\n"
-else
-	printf "%s\nDownloading default build - ${DEFAULT_BUILD}\n"
-	BUILD=${DEFAULT_BUILD}
+	# Print a menu of choices based on VERSIONS and place the user selected option (desired build) into BUILD if non-null
+	select i in ${VERSIONS[@]} ; do break ; done
+	if [ -n "${i}" ] ; then
+		# Valid selection
+		BUILD="${i}"
+		printf "%s\nDownloading ${BUILD}\n"
+	else
+		# Invalid selection
+		printf "%s\nDownloading default build - ${DEFAULT_BUILD}\n"
+		BUILD=${DEFAULT_BUILD}
+	fi
 fi
 }
 
@@ -324,33 +331,33 @@ set_path()
 {
 	if [ ${LATEST_OR_SUCCESS} = "L" ] ; then
 		L_OR_S="latest"
-		BUILD_DESC="latest nightly ${BUILD}"
+		DOWNLOAD_BUILD_DESC="latest nightly ${DOWNLOAD_BUILD}"
 	else
 		L_OR_S="success"
-		BUILD_DESC="last successful ${BUILD}"
+		DOWNLOAD_BUILD_DESC="last successful ${DOWNLOAD_BUILD}"
 	fi
-	case ${BUILD} in
+	case ${DOWNLOAD_BUILD} in
 		HEAD|TS*|GW*)
-			ROOT_DIR="/pub/builds/nightly/${BUILD}/${L_OR_S}/release/orc/"
-			DEST_DIR="/orcreleases/${BUILD}"
+			ROOT_DIR="/pub/builds/nightly/${DOWNLOAD_BUILD}/${L_OR_S}/release/orc/"
+			DEST_DIR="/orcreleases/${DOWNLOAD_BUILD}"
 			;;
 		*MIN)
-			ROOT_DIR="/pub/builds/nightly/${BUILD}/${L_OR_S}/release/gateways/"
-			DEST_DIR="/orcreleases/${BUILD}"
+			ROOT_DIR="/pub/builds/nightly/${DOWNLOAD_BUILD}/${L_OR_S}/release/gateways/"
+			DEST_DIR="/orcreleases/${DOWNLOAD_BUILD}"
 			;;
 		*)
-			ROOT_DIR="/pub/builds/nightly/Orc-${BUILD/\./-}/${L_OR_S}/release/orc/" 
-			DEST_DIR="/orcreleases/orc-${BUILD}"
+			ROOT_DIR="/pub/builds/nightly/Orc-${DOWNLOAD_BUILD/\./-}/${L_OR_S}/release/orc/" 
+			DEST_DIR="/orcreleases/orc-${DOWNLOAD_BUILD}"
 			;;
 	esac
 	
 	SOURCE=${ROOT_DIR}
 
 	if [ ${SYSTEM} = ${DARWIN} ] ; then 								# MacOSX only
-		if [ ${BUILD} = "HEAD" ] || [[ ${BUILD} =~ TS-* ]] || [ ${BUILD} = "GW" ] ; then	# non-numeric releases don't get the Orc- prefix
-			DEST_DIR="/Applications/Orc/"${BUILD}
+		if [ ${DOWNLOAD_BUILD} = "HEAD" ] || [[ ${DOWNLOAD_BUILD} =~ TS-* ]] || [ ${DOWNLOAD_BUILD} = "GW" ] ; then	# non-numeric releases don't get the Orc- prefix
+			DEST_DIR="/Applications/Orc/"${DOWNLOAD_BUILD}
 		else
-			DEST_DIR="/Applications/Orc/Orc-"${BUILD}																					# numeric releases do get the Orc- prefix
+			DEST_DIR="/Applications/Orc/Orc-"${DOWNLOAD_BUILD}																					# numeric releases do get the Orc- prefix
 		fi
 		SOURCE="	${ROOT_DIR}/apps/ \
 		${ROOT_DIR}/lib/liquidator.jar \
@@ -358,11 +365,12 @@ set_path()
 		${ROOT_DIR}/doc \
 		${ROOT_DIR}/sdk "
 	fi
+	#TODO Fix this so it works for all users
 	if [ ${SYSTEM} = ${WINDOWS} ] ; then 								# Win only
-		if [ ${BUILD} = "HEAD" ] || [[ ${BUILD} =~ TS-* ]] || [ ${BUILD} = "GW" ] ; then	# non-numeric releases don't get the Orc- prefix
-			DEST_DIR="\"/cygdrive/c/Users/jeanm/Orc/"${BUILD}\"
+		if [ ${DOWNLOAD_BUILD} = "HEAD" ] || [[ ${DOWNLOAD_BUILD} =~ TS-* ]] || [ ${DOWNLOAD_BUILD} = "GW" ] ; then	# non-numeric releases don't get the Orc- prefix
+			DEST_DIR="\"/cygdrive/c/Users/jeanm/Orc/"${DOWNLOAD_BUILD}\"
 		else
-			DEST_DIR="\"/cygdrive/c/Users/jeanm/Orc/Orc-"${BUILD}\"																					# numeric releases do get the Orc- prefix
+			DEST_DIR="\"/cygdrive/c/Users/jeanm/Orc/Orc-"${DOWNLOAD_BUILD}\"																					# numeric releases do get the Orc- prefix
 		fi
 		SOURCE="	${ROOT_DIR}/apps/ \
 		${ROOT_DIR}/lib/liquidator.jar \
@@ -453,11 +461,34 @@ if [ ${SYSTEM} != ${DARWIN} ] ; then #On a Mac/PC there's no Orc user
 fi
 }
 
+download_build()
+{
+	printf "\nRetrieving $DOWNLOAD_BUILD_DESC build from $SOURCE_HOST\n\n"
+
+	# rsync flags are 
+	# -r	recurse into directories
+	# -l	copy symlinks as symlinks
+	# -p	preserve permissions
+	# -t	preserve times
+	# -O	omit directories from timestamp preservation
+	# -v	increase verbosity
+	# -z	compress file data during the transfer
+	# -u	(update) skip files that are newer on the receiver
+	# -c	(checksum) skip based on checksum, not mod-time & size (high I/O but potentially less to transmit)
+	# ${DELETE_FILES} (--delete) delete extraneous files from dest dirs
+	# Note: Do not be tempted to add -m - this will delete the log folder from the system and the Orc binaries won't start
+	# Note also that all the escaped quotes around the -e option and the :$SOURCE are mandatory - don't be tempted to remove them.
+	#TODO pipe 2 > /dev/null
+	CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
+	eval ${CMD}
+	TRANSFER_RESULT=$?
+}
+
 eval_transfer_result()
 {
 case ${TRANSFER_RESULT} in
 	0)	
-	printf "\nSuccessfully installed ${BUILD_DESC} build\n"
+	printf "\nSuccessfully installed ${DOWNLOAD_BUILD_DESC} build\n"
 	;;
 
 	23)
@@ -465,7 +496,7 @@ case ${TRANSFER_RESULT} in
 	;;
 
 	*)
-	printf "\nrsync retrieval of "${BUILD_DESC}" reported errors. Please re-run and check the script output.\n"
+	printf "\nrsync retrieval of "${DOWNLOAD_BUILD_DESC}" reported errors. Please re-run and check the script output.\n"
 	;;
 
 esac
@@ -474,9 +505,9 @@ unset TRANSFER_RESULT
 
 # main()
 parse_opts
-if [ ${HAVE_OPTS} -eq 0 ] ; then
+get_build
+if [ ! ${HAVE_OPTS} ] ; then
 	# Prompt user for download options
-	get_build
 	get_source_host
 	get_download_pdf
 	get_delete
@@ -487,37 +518,19 @@ else
 	[ -z ${DELETE} ] && DELETE=${DEFAULT_DELETE}
 	[ -z ${LATEST_OR_SUCCESS} ] && LATEST_OR_SUCCESS=${DEFAULT_LATEST_OR_SUCCESS}
 fi
-set_path
-check_destination
 set_exclude_list
 set_exclude_file
-
-printf "\nRetrieving $BUILD_DESC build from $SOURCE_HOST\n"
-
-# rsync flags are 
-# -r	recurse into directories
-# -l	copy symlinks as symlinks
-# -p	preserve permissions
-# -t	preserve times
-# -O	omit directories from timestamp preservation
-# -v	increase verbosity
-# -z	compress file data during the transfer
-# -u	(update) skip files that are newer on the receiver
-# -c	(checksum) skip based on checksum, not mod-time & size (high I/O but potentially less to transmit)
-# ${DELETE_FILES} (--delete) delete extraneous files from dest dirs
-# Note: Do not be tempted to add -m - this will delete the log folder from the system and the Orc binaries won't start
-# Note also that all the escaped quotes around the -e option and the :$SOURCE are mandatory - don't be tempted to remove them.
-CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
-eval ${CMD}
-TRANSFER_RESULT=$?
-eval_transfer_result
-
-# Disable this for now. Doesn't really work the way we want.
-# Do a separate rsync for TradeMonitor
-#if [ "${INCLUDE_TRADEMONITOR}" ] ; then	
-#	download_extras
-#fi
-
-update_permissions
+for DOWNLOAD_BUILD in ${BUILD[*]}
+do
+	set_path
+	check_destination
+	download_build
+	eval_transfer_result
+	#TODO fix this
+	#if [ "${INCLUDE_TRADEMONITOR}" ] ; then	
+	#	download_extras
+	#fi
+	update_permissions
+done
 
 exit 0

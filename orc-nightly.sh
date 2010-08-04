@@ -21,15 +21,16 @@ usage()
 
 	Supported options are:
 		-a        Download all builds (as set in /etc/orc-nightly.conf or as defined as default values in this script
+    -b        Exclude PDF's e.g. manuals
 		-c        Exclude client applications e.g. Orc Trader & Sauron
 		-d        Delete files which do not exist on the server but exist on the client system
 		-h        Help
 		-l        Download the latest available nightly build (mutually exclusive with -s)
 		-o        Exclude contents of <orc install dir>/distrib
-		-p        Exclude PDF's e.g. manuals
-		-r				Which build to download - requires an argument - the desired build e.g. TS-9
-		-s				Download source - requires an argument - the host to download from
-		-t				Include the Trade Monitor client app (excluded by default)
+		-p        Use non-standard port for connecting to source
+		-r        Which build to download - requires an argument - the desired build e.g. TS-9
+		-s        Download source - requires an argument - the host to download from
+		-t        Include the Trade Monitor client app (excluded by default)
 		-u        Download the last successful nightly build (mutually exclusive with -l)
 		-w        Exclude windows components e.g. exes and dlls
 
@@ -112,8 +113,7 @@ ISA=$(uname -p | tr "[:lower:]" "[:upper:]") # e.g. sparc, x86_64, i386 -> SPARC
 
 # Failsafe default values
 DEFAULT_SOURCE_HOST=scp.orcsoftware.com #Default server to download from
-ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.
-DEFAULT_BUILD="TS-9" # What to download if the user doesn't explictly choose a build to retrieve
+ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.  DEFAULT_BUILD="TS-9" # What to download if the user doesn't explictly choose a build to retrieve
 BUILD=${DEFAULT_BUILD}
 DEFAULT_LATEST_OR_SUCCESS="L" # Download last available (irrespective of whether a complete build) or the last known successful build
 
@@ -130,10 +130,8 @@ EXCLUDE_PDF=""
 EXCLUDE_WIN=""
 INCLUDE_TRADEMONITOR=""
 EXCLUDE_FILE=""
-
-# Extract the username of the current user for future use
-#SSH_LOGIN=$(id | sed 's/uid=[0-9][0-9]*(\([^)]*\)).*/\1/')"@"
 SSH_LOGIN=""
+SSH_PORT="" 
 
 #TODO change to iterating through an array of locations
 # Source a config file which can override the script variables e.g. EXCLUDE_APPS
@@ -146,6 +144,7 @@ fi
 
 # Create a list of ssh identities (keys) which which to try logging in to the source
 if [ -n "${SSH_LOGIN}" ] ; then
+	# Set SSH_HOME to the home directory path of SSH_LOGIN (~orc expands to /etc/orc/ for e.g.)
 	eval "SSH_HOME=~${SSH_LOGIN}"
 	if [ -n "SSH_HOME" ] ; then
 		while read i
@@ -160,19 +159,25 @@ if [ -n "${SSH_LOGIN}" ] ; then
 		# to use when logging into the remote host.
 		done <<< "$(ls  ${SSH_HOME}/.ssh/id* 2>/dev/null | grep -v pub)"
 	fi
-	SSH_LOGIN=${SSH_LOGIN}"@"
+	SSH_LOGIN_OPTION=${SSH_LOGIN}"@"
+else
+	SSH_LOGIN_OPTION=$USER"@"
 fi 
 
 parse_opts()
 {
 	# Run through any arguments to make sure they're sane
-	while getopts "acdhlkpr:s:twu" OPTION ${CMD_LINE}
+	while getopts "abcdhlkp:r:s:twu" OPTION ${CMD_LINE}
 do
 	case ${OPTION} in
 		a)
 		# Download all configured builds (as seen in VERSIONS)
 		# TODO implement this
 		ALL_VERSIONS=true
+		;;
+		b)
+		# Exclude PDFs e.g. manuals
+		EXCLUDE_PDF=1
 		;;
 		c)
 		# Exclude client applications
@@ -201,8 +206,8 @@ do
 		EXCLUDE_DISTRIB=1
 		;;
 		p)
-		# Exclude PDFs e.g. manuals
-		EXCLUDE_PDF=1
+		# Use a non-standard port to connect to the source
+		SSH_PORT=${OPTARG}
 		;;
 		r)
 		# Which build to download - requires argument
@@ -443,7 +448,7 @@ download_extras()
 	fi
 	# On non-Mac systems, put the extras into the apps subdirectory of the destination
 	[ ${SYSTEM} != ${DARWIN} ] && DEST_DIR=${DEST_DIR}/apps
-	CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
+	CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_PORT_OPTION} ${SSH_LOGIN_OPTION}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
 	eval ${CMD}
 	TRANSFER_RESULT=$?
 	eval_transfer_result
@@ -479,7 +484,7 @@ download_build()
 	# Note: Do not be tempted to add -m - this will delete the log folder from the system and the Orc binaries won't start
 	# Note also that all the escaped quotes around the -e option and the :$SOURCE are mandatory - don't be tempted to remove them.
 	#TODO pipe 2 > /dev/null
-	CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_LOGIN}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
+	CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_PORT_OPTION} ${SSH_LOGIN_OPTION}${SOURCE_HOST}\"\":${SOURCE}\" ${DEST_DIR}"
 	eval ${CMD}
 	TRANSFER_RESULT=$?
 }
@@ -524,6 +529,7 @@ for DOWNLOAD_BUILD in ${BUILD[*]}
 do
 	set_path
 	check_destination
+	[[ ! -z ${SSH_PORT} ]] && SSH_PORT_OPTION="-p "${SSH_PORT}
 	download_build
 	eval_transfer_result
 	#TODO fix this

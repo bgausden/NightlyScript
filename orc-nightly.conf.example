@@ -35,3 +35,9 @@
 # Whether to retrieve TradeMonitor
 # BOOL
 # INCLUDE_TRADEMONITOR=""
+
+# Which user to SSH into source as
+# SSH_LOGIN=orc
+
+# Which port SSH should use to connect to source
+# SSH_PORT=22

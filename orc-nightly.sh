@@ -159,9 +159,9 @@ if [ -n "${SSH_LOGIN}" ] ; then
 		# to use when logging into the remote host.
 		done <<< "$(ls  ${SSH_HOME}/.ssh/id* 2>/dev/null | grep -v pub)"
 	fi
-	SSH_LOGIN_OPTION=${SSH_LOGIN}"@"
+	SSH_LOGIN_OPTION="-l "${SSH_LOGIN}
 else
-	SSH_LOGIN_OPTION=$USER"@"
+	SSH_LOGIN_OPTION="-l "$USER
 fi 
 
 parse_opts()
@@ -240,25 +240,25 @@ done
 
 get_build()
 {
-if [ ${ALL_VERSIONS} ] ; then
-	printf "%s\nDownloading all available builds\n"
-	unset BUILD
-	for i in ${VERSIONS[@]} ; do BUILD[${#BUILD[*]}]=$i ; done
-else
-	PS3="Which build should be downloaded? "
-	printf "\n"
-	# Print a menu of choices based on VERSIONS and place the user selected option (desired build) into BUILD if non-null
-	select i in ${VERSIONS[@]} ; do break ; done
-	if [ -n "${i}" ] ; then
-		# Valid selection
-		BUILD="${i}"
-		printf "%s\nDownloading ${BUILD}\n"
+	if [ ${ALL_VERSIONS} ] ; then
+		printf "%s\nDownloading all available builds\n"
+		unset BUILD
+		for i in ${VERSIONS[@]} ; do BUILD[${#BUILD[*]}]=$i ; done
 	else
-		# Invalid selection
-		printf "%s\nDownloading default build - ${DEFAULT_BUILD}\n"
-		BUILD=${DEFAULT_BUILD}
+		PS3="Which build should be downloaded? "
+		printf "\n"
+		# Print a menu of choices based on VERSIONS and place the user selected option (desired build) into BUILD if non-null
+		select i in ${VERSIONS[@]} ; do break ; done
+		if [ -n "${i}" ] ; then
+			# Valid selection
+			BUILD="${i}"
+			printf "%s\nDownloading ${BUILD}\n"
+		else
+			# Invalid selection
+			printf "%s\nDownloading default build - ${DEFAULT_BUILD}\n"
+			BUILD=${DEFAULT_BUILD}
+		fi
 	fi
-fi
 }
 
 get_delete()
@@ -318,7 +318,7 @@ get_download_pdf()
 get_latest_or_success()
 {
         printf "\n"
-        read -p "Download (L)atest available build or last (S)uccessful build <${DEFAULT_LATEST_SUCCESS}> " LATEST_OR_SUCCESS
+        read -p "Download (L)atest available build or last (S)uccessful build <${DEFAULT_LATEST_OR_SUCCESS}> " LATEST_OR_SUCCESS
 				case ${LATEST_OR_SUCCESS} in
 					S|s)
 					LATEST_OR_SUCCESS=S
@@ -327,7 +327,7 @@ get_latest_or_success()
 					LATEST_OR_SUCCESS=L
 					;;
 					*)
-					LATEST_OR_SUCCESS=${DEFAULT_LATEST_SUCCESS}
+					LATEST_OR_SUCCESS=${DEFAULT_LATEST_OR_SUCCESS}
 					;;
 				esac
 }
@@ -484,7 +484,7 @@ download_build()
 	# Note: Do not be tempted to add -m - this will delete the log folder from the system and the Orc binaries won't start
 	# Note also that all the escaped quotes around the -e option and the :$SOURCE are mandatory - don't be tempted to remove them.
 	#TODO pipe 2 > /dev/null
-	CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_PORT_OPTION} ${SSH_LOGIN_OPTION}${SOURCE_HOST}\"\":${SOURCE}\" ${DEST_DIR}"
+	CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_PORT_OPTION} ${SSH_LOGIN_OPTION}\" \"${SOURCE_HOST}:${SOURCE}\" \"${DEST_DIR}\""
 	eval ${CMD}
 	TRANSFER_RESULT=$?
 }
@@ -511,7 +511,7 @@ unset TRANSFER_RESULT
 # main()
 parse_opts
 get_build
-if [ ! ${HAVE_OPTS} ] ; then
+if [[ ${HAVE_OPTS} = false ]] ; then
 	# Prompt user for download options
 	get_source_host
 	get_download_pdf

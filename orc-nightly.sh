@@ -8,7 +8,7 @@
 
 fatal_exit()
 {
-	[ -n "${1:+x}" ] && printf "%s\n${1}. Aborting.\n"
+	[ -n "${1:+x}" ] && printf "%s\n${1} Aborting.\n\n"
 	exit 1
 }
 
@@ -21,11 +21,11 @@ usage()
 
 	Supported options are:
 		-a        Download all builds (as set in /etc/orc-nightly.conf or as defined as default values in this script
-    -b        Exclude PDF's e.g. manuals
+		-b        Exclude PDF's e.g. manuals
 		-c        Exclude client applications e.g. Orc Trader & Sauron
 		-d        Delete files which do not exist on the server but exist on the client system
 		-h        Help
-		-l        Download the latest available nightly build (mutually exclusive with -s)
+		-l        Download the latest available nightly build (mutually exclusive with -u)
 		-o        Exclude contents of <orc install dir>/distrib
 		-p        Use non-standard port for connecting to source
 		-r        Which build to download - requires an argument - the desired build e.g. TS-9
@@ -33,7 +33,6 @@ usage()
 		-t        Include the Trade Monitor client app (excluded by default)
 		-u        Download the last successful nightly build (mutually exclusive with -l)
 		-w        Exclude windows components e.g. exes and dlls
-
 	EOF
 }
 
@@ -88,15 +87,6 @@ TR=$(which tr) || fatal_exit "Unable to locate tr"
 unset VERSIONS
 VERSIONS=(GW TS-9 HEAD)
 
-#TODO Remove this - array syntax looks broken so probably never worked
-# Create an array "SHORT_VERSIONS" which contains only the first character
-# of each element in VERSIONS
-#unset SHORT_VERSIONS
-#for i in ${VERSIONS[@]}
-#do
-#	SHORT_VERSIONS=(${SHORT_VERSIONS} $i)
-#done
-
 # Known systems - need to add new platforms to this list as needed e.g. if we support Power going forward
 DARWIN="DARWIN"
 WINDOWS="CYGWIN_NT-6.1-WOW64"
@@ -113,15 +103,15 @@ ISA=$(uname -p | tr "[:lower:]" "[:upper:]") # e.g. sparc, x86_64, i386 -> SPARC
 
 # Failsafe default values
 DEFAULT_SOURCE_HOST=scp.orcsoftware.com #Default server to download from
-ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.  DEFAULT_BUILD="TS-9" # What to download if the user doesn't explictly choose a build to retrieve
-BUILD=${DEFAULT_BUILD}
+ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.  
+
+BUILD="" # What to download if the user doesn't explictly choose a build to retrieve
+
 DEFAULT_LATEST_OR_SUCCESS="L" # Download last available (irrespective of whether a complete build) or the last known successful build
 
-# Initialize the list of files/directories to exclude from the sync
-EXCLUDE_LIST=""
+EXCLUDE_LIST="" # Initialize the list of files/directories to exclude from the sync
 
-# Initialize array of paths to search for a file containing additional filename patterns to exclude from the sync
-EXCLUDE_FILE_PATHS=("./orc-nightly-exclude" "/etc/orc-nightly-exclude")
+EXCLUDE_FILE_PATHS=("./orc-nightly-exclude" "/etc/orc-nightly-exclude") # Initialize array of paths to search for a file containing additional filename patterns to exclude from the sync
 
 # Set EXCLUDE_APPS to a non-null value (e.g. YES) to exclude the Orc apps from the d/l. (Useful for VMs)
 EXCLUDE_APPS=""
@@ -167,7 +157,7 @@ fi
 parse_opts()
 {
 	# Run through any arguments to make sure they're sane
-	while getopts "abcdhlkp:r:s:twu" OPTION ${CMD_LINE}
+	while getopts ":abcdhlkp:r:s:twu" OPTION ${CMD_LINE}
 do
 	case ${OPTION} in
 		a)
@@ -211,7 +201,16 @@ do
 		;;
 		r)
 		# Which build to download - requires argument
-		BUILD=${OPTARG}
+		BUILD=""
+		for i in ${VERSIONS[@]} ; do
+			if [ ${OPTARG} = ${i} ] ; then
+				BUILD=${OPTARG}
+				break
+			fi
+		done
+		if [ -z ${BUILD} ] ; then
+			fatal_exit "${OPTARG} is not a valid build."
+		fi
 		;;
 		s)
 		# Host to sync with - requires argument
@@ -230,9 +229,8 @@ do
 		LATEST_OR_SUCCESS=S
 		;;
 		*)
-		printf "%s\nUnknown option: ${OPTARG}"
 		usage
-		fatal_exit "Bad command-line option"
+		fatal_exit "%s\nUnknown or malformed option: \"${OPTARG}\""
 		;;
 	esac
 done
@@ -244,7 +242,7 @@ get_build()
 		printf "%s\nDownloading all available builds\n"
 		unset BUILD
 		for i in ${VERSIONS[@]} ; do BUILD[${#BUILD[*]}]=$i ; done
-	else
+	elif [ -z ${BUILD} ] ; then
 		PS3="Which build should be downloaded? "
 		printf "\n"
 		# Print a menu of choices based on VERSIONS and place the user selected option (desired build) into BUILD if non-null

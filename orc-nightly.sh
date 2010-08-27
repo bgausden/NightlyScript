@@ -16,7 +16,6 @@ usage()
 {
 	printf "\n"
 	cat <<- EOF
-
 	Usage: $(basename $0) [-a][-c][-d][-o][-h <host>][-l][-p][-r <build>][-s][-t][-w] 
 
 	Supported options are:
@@ -111,7 +110,15 @@ DEFAULT_LATEST_OR_SUCCESS="L" # Download last available (irrespective of whether
 
 EXCLUDE_LIST="" # Initialize the list of files/directories to exclude from the sync
 
-EXCLUDE_FILE_PATHS=("./orc-nightly-exclude" "/etc/orc-nightly-exclude") # Initialize array of paths to search for a file containing additional filename patterns to exclude from the sync
+# Initialize array of paths to search for a file containing additional filename patterns to exclude from the sync
+DEREF_LINK=$(readlink -n ${0})
+if [ -z ${DEREF_LINK} ] ; then
+	EXE_PATH=$(dirname {0})
+else
+	EXE_PATH=$(dirname ${DEREF_LINK})
+fi
+
+EXCLUDE_FILE_PATHS=("./orc-nightly-exclude" "/etc/orc-nightly-exclude" ${EXE_PATH}"/orc-nightly-exclude")
 
 # Set EXCLUDE_APPS to a non-null value (e.g. YES) to exclude the Orc apps from the d/l. (Useful for VMs)
 EXCLUDE_APPS=""
@@ -139,7 +146,9 @@ if [ -n "${SSH_LOGIN}" ] ; then
 	if [ -n "SSH_HOME" ] ; then
 		while read i
 		do
-			SSH_IDENTITY=${SSH_IDENTITY}" -i ${i}"
+			if [ ! -z ${i} ] ; then
+				SSH_IDENTITY=${SSH_IDENTITY}" -i ${i}"
+			fi
 		# Nightmares with piping into a while read loop. Still better than backticks though.
 		# Note that the triple redirect is bash 3.0 onwards and that the double-quotes 
 		# around the $() are required to produce multiple arguments to read (otherwise the output

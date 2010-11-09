@@ -141,23 +141,24 @@ fi
 
 # Create a list of ssh identities (keys) which which to try logging in to the source
 if [ -n "${SSH_LOGIN}" ] ; then
-	# Set SSH_HOME to the home directory path of SSH_LOGIN (~orc expands to /etc/orc/ for e.g.)
-	eval "SSH_HOME=~${SSH_LOGIN}"
-	if [ -n "SSH_HOME" ] ; then
-		while read i
-		do
-			if [ ! -z ${i} ] ; then
-				SSH_IDENTITY=${SSH_IDENTITY}" -i ${i}"
-			fi
+	# Find all of the current user's private keys. Hopefully one of these matches
+	# $SSH_LOGIN and will be accepted by the remote system.
+	# Note we can't search $SSH_LOGIN user's .ssh directory for keys because we don't have read access.
+	# We're therefore in the odd (?) position of needing to store (e.g.) the orc user's private key
+	# in our personal .ssh folder.
+	while read i
+	do
+		if [ ! -z ${i} ] ; then
+			SSH_IDENTITY=${SSH_IDENTITY}" -i ${i}"
+		fi
 		# Nightmares with piping into a while read loop. Still better than backticks though.
 		# Note that the triple redirect is bash 3.0 onwards and that the double-quotes 
 		# around the $() are required to produce multiple arguments to read (otherwise the output
 		# of the sub-shell is considered a single argument.	
-		# In a nutshell, loop through all of the files named id* (but not including the string "pub")
-		# in the SSH_LOGIN user's home directory. We'll pass these to ssh to use as potential keys
+		# In a nutshell, loop through all of the files containing the string "PRIVATE" in the user's
+		# home directory. We'll pass these to ssh to use as potential keys
 		# to use when logging into the remote host.
-		done <<< "$(ls  ${SSH_HOME}/.ssh/id* 2>/dev/null | grep -v pub)"
-	fi
+	done <<< "$(grep -l PRIVATE ~/.ssh/*)"
 	SSH_LOGIN_OPTION="-l "${SSH_LOGIN}
 else
 	SSH_LOGIN_OPTION="-l "$USER

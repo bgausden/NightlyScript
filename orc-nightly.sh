@@ -133,10 +133,10 @@ SSH_PORT=""
 #TODO change to iterating through an array of locations
 # Source a config file which can override the script variables e.g. EXCLUDE_APPS
 CONF_FILE=orc-nightly.conf
-if [ -f ./${CONF_FILE} ] ; then 
-	source ./${CONF_FILE}
+if	[ -f /etc/${CONF_FILE} ] ; then
+	source /etc/${CONF_FILE}
 else
-	[ -f /etc/${CONF_FILE} ] && source /etc/${CONF_FILE}
+	[ -f ./${CONF_FILE} ] && source /etc/${CONF_FILE}
 fi
 
 # Create a list of ssh identities (keys) which which to try logging in to the source

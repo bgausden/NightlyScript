@@ -492,7 +492,7 @@ download_build()
 	# Note: Do not be tempted to add -m - this will delete the log folder from the system and the Orc binaries won't start
 	# Note also that all the escaped quotes around the -e option and the :$SOURCE are mandatory - don't be tempted to remove them.
 	#TODO pipe 2 > /dev/null
-	CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_PORT_OPTION} ${SSH_LOGIN_OPTION}\" \"${SOURCE_HOST}:${SOURCE}\" \"${DEST_DIR}\""
+	CMD="${RSYNC} -rlptzucO --rsync-path=rsync --progress ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_PORT_OPTION} ${SSH_LOGIN_OPTION}\" \"${SOURCE_HOST}:${SOURCE}\" \"${DEST_DIR}\""
 	eval ${CMD}
 	TRANSFER_RESULT=$?
 }

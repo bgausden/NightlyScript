@@ -118,7 +118,7 @@ else
 	EXE_PATH=$(dirname ${DEREF_LINK})
 fi
 
-EXCLUDE_FILE_PATHS=("./orc-nightly-exclude" "/etc/orc-nightly-exclude" ${EXE_PATH}"/orc-nightly-exclude")
+EXCLUDE_FILE_PATHS=("${PWD}/orc-nightly-exclude" "/etc/orc-nightly-exclude" ${EXE_PATH}"/orc-nightly-exclude")
 
 # Set EXCLUDE_APPS to a non-null value (e.g. YES) to exclude the Orc apps from the d/l. (Useful for VMs)
 EXCLUDE_APPS=""
@@ -466,11 +466,12 @@ update_permissions()
 {
 if [ ${SYSTEM} != ${DARWIN} ] ; then #On a Mac/PC there's no Orc user
 	printf "\nChanging owner and permissions of new Orc\n"
-	cd $DEST_DIR/..
+	pushd $DEST_DIR/.. > /dev/null 2>&1
 	CMD="${CHOWN} -R orc:orc ${DEST_DIR} 2>/dev/null"
 	#TODO add test for sudo - if permitted then use sudo otherwise try to update owner/group without sudo
 	#sudo ${CMD} > /dev/null 2>&1 || fatal_exit "Unable to update owner & group of ${DEST_DIR} - please check that you are in sudoers and manually update the owner & group of ${DEST_DIR}"
 	eval ${CMD}
+	popd > /dev/null 2>&1
 fi
 }
 

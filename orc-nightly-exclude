@@ -18,8 +18,9 @@ cfed
 cme*
 core.*
 difxgwd
+*elx*
 *emapi*
-espeedgwd
+*espeed*
 *eurex*
 *euronext*
 euwax
@@ -30,6 +31,7 @@ fortsd
 gamstd*
 gam2*
 hfd
+*hsvf*
 *Ifx*
 interactived
 ised*
@@ -40,8 +42,6 @@ libchipolino.so
 libdifxgw.so
 libemapi_turquoise.so
 libESPD.so
-libespeedgw.so
-libhsvfgw.so
 liblsemdgw.so
 libmpgw.so
 libNBRFIX.a
@@ -67,6 +67,7 @@ onechicagocmid
 onechicagod
 *ouch*
 pcqetix
+*phlx*
 puretradingd
 saxessd.500
 setsd*

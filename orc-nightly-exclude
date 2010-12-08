@@ -41,12 +41,11 @@ libACE*
 libalphagw.so
 libchipolino.so
 libdifxgw.so
-libemapi_turquoise.so
 libESPD.so
+libise*
 liblsemdgw.so
 libmpgw.so
 libNBRFIX.a
-libturquoisegw.so
 *liffe*
 lild.10
 mefffixd
@@ -71,7 +70,7 @@ tsevd
 tsid
 tsx_order_compact
 tsx_order_dump
-turquoisegwd
+*turquoise*
 usoptionsd
 *utpdirect*
 *xetra*

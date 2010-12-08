@@ -45,8 +45,6 @@ libESPD.so
 liblsemdgw.so
 libmpgw.so
 libNBRFIX.a
-libsailgw.so
-*swx*
 libturquoisegw.so
 *liffe*
 lild.10
@@ -62,10 +60,11 @@ onechicagod
 pcqetix
 *phlx*
 puretradingd
+*sail*
 saxessd.500
 setsd*
-sibed
-sibed.x51
+sibe*
+*swx*
 tsed
 tsevd
 tsid

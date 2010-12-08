@@ -130,14 +130,12 @@ EXCLUDE_FILE=""
 SSH_LOGIN=""
 SSH_PORT="" 
 
-#TODO change to iterating through an array of locations
 # Source a config file which can override the script variables e.g. EXCLUDE_APPS
+# Source both the conf file in the working directory and one (if it exists)
+# in /etc. A conf file in /etc/ will take precedence.
 CONF_FILE=orc-nightly.conf
-if	[ -f /etc/${CONF_FILE} ] ; then
-	source /etc/${CONF_FILE}
-else
-	[ -f ./${CONF_FILE} ] && source /etc/${CONF_FILE}
-fi
+[ -f ./${CONF_FILE} ] && source ./${CONF_FILE}
+[ -f /etc/${CONF_FILE} ] && source /etc/${CONF_FILE}
 
 # Create a list of ssh identities (keys) which which to try logging in to the source
 if [ -n "${SSH_LOGIN}" ] ; then

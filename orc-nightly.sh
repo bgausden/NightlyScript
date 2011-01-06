@@ -409,19 +409,19 @@ check_destination()
 
 set_exclude_list()
 {
-	CVS="--exclude=\*/CVS/"															# CVS
-	CYGWIN="--exclude=i386-pc-cygwin/"									# Cygwin
-	LINUX32="--exclude=i386-unknown-linux/"							# 32bit Linux
-	DISTRIB="--exclude=distrib/"												# Orc Monitor
-	LOGS="--exclude=log/\*"															# Logs
-	APPS="--exclude=apps/"															# Apps
-	PDF="--exclude=\*.pdf"															# PDF Documentation
-	ALLSUNOS="--exclude=arch/\*solaris\*"								# Solaris x86_64 & SPARC
-	ALLLINUX="--exclude=arch/\*linux\*"									# Linux all flavours
-	ALLDARWIN="--exclude=arch/\*darwin\*"								# Mac
+	CVS="--exclude=\*/CVS/"									# CVS
+	CYGWIN="--exclude=i386-pc-cygwin/"						# Cygwin
+	LINUX32="--exclude=i386-unknown-linux/"					# 32bit Linux
+	DISTRIB="--exclude=distrib/"							# Orc Monitor
+	LOGS="--exclude=log/\*"									# Logs
+	APPS="--exclude=/apps/"									# Apps
+	PDF="--exclude=\*.pdf"									# PDF Documentation
+	ALLSUNOS="--exclude=arch/\*solaris\*"					# Solaris x86_64 & SPARC
+	ALLLINUX="--exclude=arch/\*linux\*"						# Linux all flavours
+	ALLDARWIN="--exclude=arch/\*darwin\*"					# Mac
 	WINDOWS_EXES="--exclude=\*.dll --exclude=\*.exe"		# DLLs and EXEs
-	X86_64_SUN="--exclude=arch/x86_64-sun\*/"						# Solaris x86_64
-	SPARC_SUN="--exclude=arch/sparc-sun\*/"							# Solaris SPARC
+	X86_64_SUN="--exclude=arch/x86_64-sun\*/"				# Solaris x86_64
+	SPARC_SUN="--exclude=arch/sparc-sun\*/"					# Solaris SPARC
 
 	EXCLUDE_LIST="${CVS} ${CYGWIN} ${LINUX32} ${LOGS}"
 

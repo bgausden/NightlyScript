@@ -118,7 +118,7 @@ else
 	EXE_PATH=$(dirname ${DEREF_LINK})
 fi
 
-EXCLUDE_FILE_PATHS=("${PWD}/orc-nightly-exclude" "/etc/orc-nightly-exclude" ${EXE_PATH}"/orc-nightly-exclude")
+EXCLUDE_FILE_PATHS=("${PWD}/orc-nightly-exclude" ${EXE_PATH}"/orc-nightly-exclude" "/etc/orc-nightly-exclude")
 
 # Set EXCLUDE_APPS to a non-null value (e.g. YES) to exclude the Orc apps from the d/l. (Useful for VMs)
 EXCLUDE_APPS=""
@@ -439,11 +439,10 @@ set_exclude_list()
 }
 
 set_exclude_file()
+# Read the system orc-nightly-exclude but if there's a local one prefer that one
 {
-	for i in ${EXCLUDE_FILE_PATHS[*]}
-	do
-		[ -f ${i} ] && EXCLUDE_FILE="--exclude-from="$i
-	done
+	[[ -f "/etc/orc-nightly-exclude" ]] && EXCLUDE_FILE="--exclude-from=/etc/orc-nightly-exclude"
+	[[ -f "${PWD}/orc-nightly-exclude" ]] && ( printf "\nLoading excludes from ${PWD}\n" ; EXCLUDE_FILE="--exclude-from=${PWD}/orc-nightly-exclude" )
 }
 
 download_extras()

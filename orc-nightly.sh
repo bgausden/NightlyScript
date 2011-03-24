@@ -414,7 +414,7 @@ set_exclude_list()
 	LINUX32="--exclude=i386-unknown-linux/"							# 32bit Linux
 	DISTRIB="--exclude=distrib/"												# Orc Monitor
 	LOGS="--exclude=log/\*"															# Logs
-	APPS="--exclude=apps/"															# Apps
+	APPS="--exclude=/apps/"															# Apps
 	PDF="--exclude=\*.pdf"															# PDF Documentation
 	ALLSUNOS="--exclude=arch/\*solaris\*"								# Solaris x86_64 & SPARC
 	ALLLINUX="--exclude=arch/\*linux\*"									# Linux all flavours

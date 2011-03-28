@@ -16,22 +16,23 @@ usage()
 {
 	printf "\n"
 	cat <<- EOF
-	Usage: $(basename $0) [-a][-c][-d][-o][-h <host>][-l][-p][-r <build>][-s][-t][-w] 
+Usage: $(basename $0) [-a][-c][-d][-o][-h <host>][-l][-p][-q][-r <build>][-s][-t][-w] 
 
-	Supported options are:
-		-a        Download all builds (as set in /etc/orc-nightly.conf or as defined as default values in this script
-		-b        Exclude PDF's e.g. manuals
-		-c        Exclude client applications e.g. Orc Trader & Sauron
-		-d        Delete files which do not exist on the server but exist on the client system
-		-h        Help
-		-l        Download the latest available nightly build (mutually exclusive with -u)
-		-o        Exclude contents of <orc install dir>/distrib
-		-p        Use non-standard port for connecting to source
-		-r        Which build to download - requires an argument - the desired build e.g. TS-9
-		-s        Download source - requires an argument - the host to download from
-		-t        Include the Trade Monitor client app (excluded by default)
-		-u        Download the last successful nightly build (mutually exclusive with -l)
-		-w        Exclude windows components e.g. exes and dlls
+Supported options are:
+    -a        Download all builds (as set in /etc/orc-nightly.conf or as defined as default values in this script
+    -b        Exclude PDF's e.g. manuals
+    -c        Exclude client applications e.g. Orc Trader & Sauron
+    -d        Delete files which do not exist on the server but exist on the client system
+    -h        Help
+    -l        Download the latest available nightly build (mutually exclusive with -u)
+    -o        Exclude contents of <orc install dir>/distrib
+    -p        Use non-standard port for connecting to source
+    -q				Be quiet — don't output progress info
+    -r        Which build to download - requires an argument - the desired build e.g. TS-9
+    -s        Download source - requires an argument - the host to download from
+    -t        Include the Trade Monitor client app (excluded by default)
+    -u        Download the last successful nightly build (mutually exclusive with -l)
+    -w        Exclude windows components e.g. exes and dlls
 	EOF
 }
 
@@ -39,31 +40,31 @@ description()
 {
 	cat <<-EOF
 
-	Description: $(basename $0) is a script for downloading via rsync the nightly builds from (typically) Stockholm, via rsync.
+Description: $(basename $0) is a script for downloading via rsync the nightly builds from (typically) Stockholm, via rsync.
 
-	The script provides for downloading either the most recent or the last successful nightly build for any of the 
-	available Orc releases, both TS and GW.
+The script provides for downloading either the most recent or the last successful nightly build for any of the 
+available Orc releases, both TS and GW.
 
-  The script accepts a number of command-line options (see Usage) and will also read from a config file which
-	is sourced from either $CWD/orc-nightly-config or /etc/orc-nightly-config. If no command-line options are 
-	provided and there is no config file found, the script will fall back to hard-coded fail-safe parameters.
+The script accepts a number of command-line options (see Usage) and will also read from a config file which
+is sourced from either $CWD/orc-nightly-config or /etc/orc-nightly-config. If no command-line options are 
+provided and there is no config file found, the script will fall back to hard-coded fail-safe parameters.
 
-	In addition to the config file, the script will read ./orc-nightly-exclude or /etc/orc-nightly-exclude from
-	which a list of filename patterns to exclude from the synchronization will be read. The file accepts both
-	full and partial pathnames and will perform variable expansion and globbing on the patterns when determining
-	which files/directories to exclude.
+In addition to the config file, the script will read ./orc-nightly-exclude or /etc/orc-nightly-exclude from
+which a list of filename patterns to exclude from the synchronization will be read. The file accepts both
+full and partial pathnames and will perform variable expansion and globbing on the patterns when determining
+which files/directories to exclude.
 
-	The script utilizes SSH to connect to the source. rsync then tunnels vi the SSH connection. If a username is
-	specified on the command-line or via the config file, the script will locate all SSH keys in the nominated
-	user's $HOME/.ssh/ directory and will use these when attempting to make the SSH connection. If no valid keys
-	are found, and if the server permits it, the user will be prompted for a password with which to log in.
+The script utilizes SSH to connect to the source. rsync then tunnels vi the SSH connection. If a username is
+specified on the command-line or via the config file, the script will locate all SSH keys in the nominated
+user's $HOME/.ssh/ directory and will use these when attempting to make the SSH connection. If no valid keys
+are found, and if the server permits it, the user will be prompted for a password with which to log in.
 
-	The script requires a directory structure on the destination which mimics that found on the Stockholm servers i.e.
+The script requires a directory structure on the destination which mimics that found on the Stockholm servers i.e.
 
-	/pub/builds/nightly/GW/latest/release/orc --soft linked-> /orcreleases/GW/
-	
-	If the destination path does not exist the script will prompt the user to either proceed (and create the required path) or to abort.
-	EOF
+/pub/builds/nightly/GW/latest/release/orc --soft linked-> /orcreleases/GW/
+
+If the destination path does not exist the script will prompt the user to either proceed (and create the required path) or to abort.
+EOF
 }
 
 # The command-line gets clobbered so we need to save it now for parsing later on.
@@ -120,8 +121,7 @@ fi
 
 EXCLUDE_FILE_PATHS=("${PWD}/orc-nightly-exclude" ${EXE_PATH}"/orc-nightly-exclude" "/etc/orc-nightly-exclude")
 
-# Set EXCLUDE_APPS to a non-null value (e.g. YES) to exclude the Orc apps from the d/l. (Useful for VMs)
-EXCLUDE_APPS=""
+EXCLUDE_APPS=""  # Set EXCLUDE_APPS to a non-null value (e.g. YES) to exclude the Orc apps from the d/l. (Useful for VMs)
 EXCLUDE_DISTRIB=""
 EXCLUDE_PDF=""
 EXCLUDE_WIN=""
@@ -129,6 +129,7 @@ INCLUDE_TRADEMONITOR=""
 EXCLUDE_FILE=""
 SSH_LOGIN=""
 SSH_PORT="" 
+QUIET=""
 
 # Source a config file which can override the script variables e.g. EXCLUDE_APPS
 # Source both the conf file in the working directory and one (if it exists)
@@ -165,7 +166,7 @@ fi
 parse_opts()
 {
 	# Run through any arguments to make sure they're sane
-	while getopts ":abcdhlkp:r:s:twu" OPTION ${CMD_LINE}
+	while getopts ":abcdhlkp:qr:s:twu" OPTION ${CMD_LINE}
 do
 	case ${OPTION} in
 		a)
@@ -206,6 +207,10 @@ do
 		p)
 		# Use a non-standard port to connect to the source
 		SSH_PORT=${OPTARG}
+		;;
+		q)
+		# Suppress progress info
+		QUIET=1
 		;;
 		r)
 		# Which build to download - requires argument
@@ -445,6 +450,13 @@ set_exclude_file()
 	[[ -f "${PWD}/orc-nightly-exclude" ]] && ( printf "\nLoading excludes from ${PWD}\n" ; EXCLUDE_FILE="--exclude-from=${PWD}/orc-nightly-exclude" )
 }
 
+is_quiet()
+# suppress progress output
+{
+	PROGRESS="--progress"
+	[[ ! _${QUIET} = _ ]] && PROGRESS=""
+}
+
 download_extras()
 # This doesn't work well as the directory tree on the local systems doesn't really match what's in Sthlm. Getting everything in the right place in a consistent manner is ugly as hell.
 {
@@ -453,7 +465,7 @@ download_extras()
 	fi
 	# On non-Mac systems, put the extras into the apps subdirectory of the destination
 	[ ${SYSTEM} != ${DARWIN} ] && DEST_DIR=${DEST_DIR}/apps
-	CMD="${RSYNC} -rlptzucO --progress ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_PORT_OPTION} ${SSH_LOGIN_OPTION}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
+	CMD="${RSYNC} -rlptzucO ${PROGRESS} ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_PORT_OPTION} ${SSH_LOGIN_OPTION}${SOURCE_HOST}\" \":${SOURCE}\" ${DEST_DIR}"
 	eval ${CMD}
 	TRANSFER_RESULT=$?
 	eval_transfer_result
@@ -490,7 +502,7 @@ download_build()
 	# Note: Do not be tempted to add -m - this will delete the log folder from the system and the Orc binaries won't start
 	# Note also that all the escaped quotes around the -e option and the :$SOURCE are mandatory - don't be tempted to remove them.
 	#TODO pipe 2 > /dev/null
-	CMD="${RSYNC} -rlptzucO --rsync-path=rsync --progress ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_PORT_OPTION} ${SSH_LOGIN_OPTION}\" \"${SOURCE_HOST}:${SOURCE}\" \"${DEST_DIR}\""
+	CMD="${RSYNC} -rlptzucO --rsync-path=rsync ${PROGRESS} ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_PORT_OPTION} ${SSH_LOGIN_OPTION}\" \"${SOURCE_HOST}:${SOURCE}\" \"${DEST_DIR}\""
 	eval ${CMD}
 	TRANSFER_RESULT=$?
 }
@@ -531,6 +543,7 @@ else
 fi
 set_exclude_list
 set_exclude_file
+is_quiet
 for DOWNLOAD_BUILD in ${BUILD[*]}
 do
 	set_path

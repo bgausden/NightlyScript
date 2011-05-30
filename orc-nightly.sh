@@ -414,19 +414,19 @@ check_destination()
 
 set_exclude_list()
 {
-	CVS="--exclude=\*/CVS/"															# CVS
-	CYGWIN="--exclude=i386-pc-cygwin/"									# Cygwin
-	LINUX32="--exclude=i386-unknown-linux/"							# 32bit Linux
-	DISTRIB="--exclude=distrib/"												# Orc Monitor
-	LOGS="--exclude=log/\*"															# Logs
-	APPS="--exclude=/apps/"															# Apps
-	PDF="--exclude=\*.pdf"															# PDF Documentation
-	ALLSUNOS="--exclude=arch/\*solaris\*"								# Solaris x86_64 & SPARC
-	ALLLINUX="--exclude=arch/\*linux\*"									# Linux all flavours
-	ALLDARWIN="--exclude=arch/\*darwin\*"								# Mac
-	WINDOWS_EXES="--exclude=\*.dll --exclude=\*.exe"		# DLLs and EXEs
-	X86_64_SUN="--exclude=arch/x86_64-sun\*/"						# Solaris x86_64
-	SPARC_SUN="--exclude=arch/sparc-sun\*/"							# Solaris SPARC
+	CVS="--exclude=\*/CVS/"					# CVS
+	CYGWIN="--exclude=i386-pc-cygwin/"			# Cygwin
+	LINUX32="--exclude=i386-unknown-linux/"			# 32bit Linux
+	DISTRIB="--exclude=distrib/"				# Orc Monitor
+	LOGS="--exclude=log/\*"					# Logs
+	APPS="--exclude=/apps/"					# Apps
+	PDF="--exclude=\*.pdf"					# PDF Documentation
+	ALLSUNOS="--exclude=arch/\*solaris\*"			# Solaris x86_64 & SPARC
+	ALLLINUX="--exclude=arch/\*linux\*"			# Linux all flavours
+	ALLDARWIN="--exclude=arch/\*darwin\*"			# Mac
+	WINDOWS_EXES="--exclude=\*.dll --exclude=\*.exe"	# DLLs and EXEs
+	X86_64_SUN="--exclude=arch/x86_64-sun\*/"		# Solaris x86_64
+	SPARC_SUN="--exclude=arch/sparc-sun\*/"			# Solaris SPARC
 
 	EXCLUDE_LIST="${CVS} ${CYGWIN} ${LINUX32} ${LOGS}"
 
@@ -444,10 +444,16 @@ set_exclude_list()
 }
 
 set_exclude_file()
-# Read the system orc-nightly-exclude but if there's a local one prefer that one
+# Read the system orc-nightly-exclude but if there's a local orc-nightly-exclude prefer it to the system-wide version
 {
 	[[ -f "/etc/orc-nightly-exclude" ]] && EXCLUDE_FILE="--exclude-from=/etc/orc-nightly-exclude"
 	[[ -f "${PWD}/orc-nightly-exclude" ]] && ( printf "\nLoading excludes from ${PWD}\n" ; EXCLUDE_FILE="--exclude-from=${PWD}/orc-nightly-exclude" )
+}
+
+set_include_list()
+# Force the inclusion of any files we know we want but are likely to be in the exlude lists e.g. archives
+{
+	INCLUDE_LIST="--include=orcgate*.tar.gz"
 }
 
 is_quiet()
@@ -499,10 +505,11 @@ download_build()
 	# -u	(update) skip files that are newer on the receiver
 	# -c	(checksum) skip based on checksum, not mod-time & size (high I/O but potentially less to transmit)
 	# ${DELETE_FILES} (--delete) delete extraneous files from dest dirs
+	# Note: To include some files which might otherwise be excluded, it's necessary to have the INCLUDE_LIST *precede* the EXCLUDE_LIST/EXCLUDE_FILE
 	# Note: Do not be tempted to add -m - this will delete the log folder from the system and the Orc binaries won't start
 	# Note also that all the escaped quotes around the -e option and the :$SOURCE are mandatory - don't be tempted to remove them.
 	#TODO pipe 2 > /dev/null
-	CMD="${RSYNC} -rlptzucO --rsync-path=rsync ${PROGRESS} ${DELETE_FILES} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_PORT_OPTION} ${SSH_LOGIN_OPTION}\" \"${SOURCE_HOST}:${SOURCE}\" \"${DEST_DIR}\""
+	CMD="${RSYNC} -rlptzucO --rsync-path=rsync ${PROGRESS} ${DELETE_FILES} ${INCLUDE_LIST} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_PORT_OPTION} ${SSH_LOGIN_OPTION}\" \"${SOURCE_HOST}:${SOURCE}\" \"${DEST_DIR}\""
 	eval ${CMD}
 	TRANSFER_RESULT=$?
 }
@@ -534,13 +541,14 @@ if [[ ${HAVE_OPTS} = false ]] ; then
 	get_source_host
 	get_download_pdf
 	get_delete
-  get_latest_or_success
+	get_latest_or_success
 else
 	[ -z ${BUILD} ] && BUILD=${DEFAULT_BUILD}
 	[ -z ${SOURCE_HOST} ] && SOURCE_HOST=${DEFAULT_SOURCE_HOST}
 	[ -z ${DELETE} ] && DELETE=${DEFAULT_DELETE}
 	[ -z ${LATEST_OR_SUCCESS} ] && LATEST_OR_SUCCESS=${DEFAULT_LATEST_OR_SUCCESS}
 fi
+set_include_list
 set_exclude_list
 set_exclude_file
 is_quiet

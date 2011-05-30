@@ -112,7 +112,7 @@ DEFAULT_LATEST_OR_SUCCESS="L" # Download last available (irrespective of whether
 EXCLUDE_LIST="" # Initialize the list of files/directories to exclude from the sync
 
 # Initialize array of paths to search for a file containing additional filename patterns to exclude from the sync
-DEREF_LINK=$(readlink -n ${0})
+DEREF_LINK=$(readlink -n `which ${0}`)
 if [ -z ${DEREF_LINK} ] ; then
 	EXE_PATH=$(dirname {0})
 else
@@ -446,8 +446,13 @@ set_exclude_list()
 set_exclude_file()
 # Read the system orc-nightly-exclude but if there's a local orc-nightly-exclude prefer it to the system-wide version
 {
-	[[ -f "/etc/orc-nightly-exclude" ]] && EXCLUDE_FILE="--exclude-from=/etc/orc-nightly-exclude"
-	[[ -f "${PWD}/orc-nightly-exclude" ]] && ( printf "\nLoading excludes from ${PWD}\n" ; EXCLUDE_FILE="--exclude-from=${PWD}/orc-nightly-exclude" )
+	EXCLUDE_FILE=""
+	for i in ${EXCLUDE_FILE_PATHS[@]}; do
+		if [ -f ${i} ]; then
+			printf "\nLoading excludes from ${i}\n" 
+			EXCLUDE_FILE="${EXCLUDE_FILE} --exclude-from=${i}"
+		fi
+	done
 }
 
 set_include_list()

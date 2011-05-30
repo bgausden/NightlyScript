@@ -167,7 +167,7 @@ fi
 parse_opts()
 {
 	# Run through any arguments to make sure they're sane
-	while getopts ":abcdhlkp:qr:s:twu" OPTION ${CMD_LINE}
+	while getopts ":abcdhlkp:oqr:s:twu" OPTION ${CMD_LINE}
 do
 	case ${OPTION} in
 		a)

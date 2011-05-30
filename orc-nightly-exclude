@@ -15,7 +15,7 @@ cbsxd
 cfecmid
 cfed
 cme*
-core.*
+core.[0-9][0-9]*
 difxgwd
 *elx*
 *emapi*
@@ -35,7 +35,6 @@ hfd
 interactived
 ised*
 *itch*
-libACE*
 libalphagw.so
 libchipolino.so
 libdifxgw.so

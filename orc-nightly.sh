@@ -453,7 +453,7 @@ set_exclude_file()
 			EXCLUDE_FILE="--exclude-from=${i}"
 		fi
 	done
-	printf "\nLoading excludes from ${EXCLUDE_FILE}\n"
+	printf "\nLoading excludes from ${i}\n"
 }
 
 set_include_list()

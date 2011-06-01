@@ -102,12 +102,12 @@ SYSTEM=$(uname -s | tr "[:lower:]" "[:upper:]")	# e.g SunOS, Linux, Darwin -> SU
 ISA=$(uname -p | tr "[:lower:]" "[:upper:]") # e.g. sparc, x86_64, i386 -> SPARC, X86_64, I386
 
 # Failsafe default values
-DEFAULT_SOURCE_HOST=scp.orcsoftware.com #Default server to download from
+DEFAULT_SOURCE_HOST="scp.orcsoftware.com" #Default server to download from
 ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.  
 
-BUILD="" # What to download if the user doesn't explictly choose a build to retrieve
+BUILD="TS-9" # What to download if the user doesn't explictly choose a build to retrieve
 
-DEFAULT_LATEST_OR_SUCCESS="L" # Download last available (irrespective of whether a complete build) or the last known successful build
+DEFAULT_LATEST_OR_SUCCESS="S" # Download last available (irrespective of whether a complete build) or the last known successful build
 
 EXCLUDE_LIST="" # Initialize the list of files/directories to exclude from the sync
 
@@ -119,7 +119,8 @@ else
 	EXE_PATH=$(dirname ${DEREF_LINK})
 fi
 
-EXCLUDE_FILE_PATHS=("${PWD}/orc-nightly-exclude" ${EXE_PATH}"/orc-nightly-exclude" "/etc/orc-nightly-exclude")
+# The order in which the below exclude file paths appear is important. The last found file will be the one used i.e. the path order implies your preference. If the user has created orc-nightly-exclude in the /etc directory, it's presumed to be authoritative hence it's the last path in the list.
+EXCLUDE_FILE_PATHS=(${EXE_PATH}"/orc-nightly-exclude" "${PWD}/orc-nightly-exclude" "/etc/orc-nightly-exclude")
 
 EXCLUDE_APPS=""  # Set EXCLUDE_APPS to a non-null value (e.g. YES) to exclude the Orc apps from the d/l. (Useful for VMs)
 EXCLUDE_DISTRIB=""
@@ -166,7 +167,7 @@ fi
 parse_opts()
 {
 	# Run through any arguments to make sure they're sane
-	while getopts ":abcdhlkp:qr:s:twu" OPTION ${CMD_LINE}
+	while getopts ":abcdhlkp:oqr:s:twu" OPTION ${CMD_LINE}
 do
 	case ${OPTION} in
 		a)
@@ -353,7 +354,12 @@ set_path()
 		DOWNLOAD_BUILD_DESC="last successful ${DOWNLOAD_BUILD}"
 	fi
 	case ${DOWNLOAD_BUILD} in
-		HEAD|TS*|GW*)
+		TS-HEAD|GW-HEAD)
+			[[ ${L_OR_S} = "success" ]]&& L_OR_S="core_success" # in these builds, the link called "success" no longer exists.
+			ROOT_DIR="/pub/builds/nightly/${DOWNLOAD_BUILD}/${L_OR_S}/release/orc/"
+			DEST_DIR="/orcreleases/${DOWNLOAD_BUILD}"
+			;;
+		TS*|GW*) # all other TS and GW builds (other than HEAD)
 			ROOT_DIR="/pub/builds/nightly/${DOWNLOAD_BUILD}/${L_OR_S}/release/orc/"
 			DEST_DIR="/orcreleases/${DOWNLOAD_BUILD}"
 			;;
@@ -449,10 +455,10 @@ set_exclude_file()
 	EXCLUDE_FILE=""
 	for i in ${EXCLUDE_FILE_PATHS[@]}; do
 		if [ -f ${i} ]; then
-			printf "\nLoading excludes from ${i}\n" 
-			EXCLUDE_FILE="${EXCLUDE_FILE} --exclude-from=${i}"
+			EXCLUDE_FILE="--exclude-from=${i}"
 		fi
 	done
+	printf "\nLoading excludes from ${i}\n"
 }
 
 set_include_list()

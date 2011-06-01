@@ -102,12 +102,12 @@ SYSTEM=$(uname -s | tr "[:lower:]" "[:upper:]")	# e.g SunOS, Linux, Darwin -> SU
 ISA=$(uname -p | tr "[:lower:]" "[:upper:]") # e.g. sparc, x86_64, i386 -> SPARC, X86_64, I386
 
 # Failsafe default values
-DEFAULT_SOURCE_HOST=scp.orcsoftware.com #Default server to download from
+DEFAULT_SOURCE_HOST="scp.orcsoftware.com" #Default server to download from
 ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.  
 
-BUILD="" # What to download if the user doesn't explictly choose a build to retrieve
+BUILD="TS-9" # What to download if the user doesn't explictly choose a build to retrieve
 
-DEFAULT_LATEST_OR_SUCCESS="L" # Download last available (irrespective of whether a complete build) or the last known successful build
+DEFAULT_LATEST_OR_SUCCESS="S" # Download last available (irrespective of whether a complete build) or the last known successful build
 
 EXCLUDE_LIST="" # Initialize the list of files/directories to exclude from the sync
 

@@ -451,6 +451,7 @@ set_exclude_file()
 	for i in ${EXCLUDE_FILE_PATHS[@]}; do
 		if [ -f ${i} ]; then
 			EXCLUDE_FILE="--exclude-from=${i}"
+			break
 		fi
 	done
 	printf "\nLoading excludes from ${i}\n"

@@ -354,12 +354,7 @@ set_path()
 		DOWNLOAD_BUILD_DESC="last successful ${DOWNLOAD_BUILD}"
 	fi
 	case ${DOWNLOAD_BUILD} in
-		TS-HEAD|GW-HEAD)
-			[[ ${L_OR_S} = "success" ]]&& L_OR_S="core_success" # in these builds, the link called "success" no longer exists.
-			ROOT_DIR="/pub/builds/nightly/${DOWNLOAD_BUILD}/${L_OR_S}/release/orc/"
-			DEST_DIR="/orcreleases/${DOWNLOAD_BUILD}"
-			;;
-		TS*|GW*) # all other TS and GW builds (other than HEAD)
+		HEAD|TS*|GW*)
 			ROOT_DIR="/pub/builds/nightly/${DOWNLOAD_BUILD}/${L_OR_S}/release/orc/"
 			DEST_DIR="/orcreleases/${DOWNLOAD_BUILD}"
 			;;

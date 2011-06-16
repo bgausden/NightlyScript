@@ -105,7 +105,7 @@ ISA=$(uname -p | tr "[:lower:]" "[:upper:]") # e.g. sparc, x86_64, i386 -> SPARC
 DEFAULT_SOURCE_HOST="scp.orcsoftware.com" #Default server to download from
 ROOT_DIR="/pub/static/common/applications/orc" # Need this created on the source machine if doesn't exist.  
 
-BUILD="TS-9" # What to download if the user doesn't explictly choose a build to retrieve
+DEFAULT_BUILD="TS-9" # What to download if the user doesn't explictly choose a build to retrieve
 
 DEFAULT_LATEST_OR_SUCCESS="S" # Download last available (irrespective of whether a complete build) or the last known successful build
 
@@ -354,12 +354,7 @@ set_path()
 		DOWNLOAD_BUILD_DESC="last successful ${DOWNLOAD_BUILD}"
 	fi
 	case ${DOWNLOAD_BUILD} in
-		TS-HEAD|GW-HEAD)
-			[[ ${L_OR_S} = "success" ]]&& L_OR_S="core_success" # in these builds, the link called "success" no longer exists.
-			ROOT_DIR="/pub/builds/nightly/${DOWNLOAD_BUILD}/${L_OR_S}/release/orc/"
-			DEST_DIR="/orcreleases/${DOWNLOAD_BUILD}"
-			;;
-		TS*|GW*) # all other TS and GW builds (other than HEAD)
+		HEAD|TS*|GW*)
 			ROOT_DIR="/pub/builds/nightly/${DOWNLOAD_BUILD}/${L_OR_S}/release/orc/"
 			DEST_DIR="/orcreleases/${DOWNLOAD_BUILD}"
 			;;

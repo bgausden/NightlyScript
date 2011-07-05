@@ -85,7 +85,7 @@ TR=$(which tr) || fatal_exit "Unable to locate tr"
 
 # Builds we know about - update this list as builds become (un)available
 unset VERSIONS
-VERSIONS=(GW TS-9 HEAD)
+VERSIONS=(GW TS-9 TS-HEAD GW-HEAD)
 
 # Known systems - need to add new platforms to this list as needed e.g. if we support Power going forward
 DARWIN="DARWIN"
@@ -136,6 +136,7 @@ QUIET=""
 # Source both the conf file in the working directory and one (if it exists)
 # in /etc. A conf file in /etc/ will take precedence.
 CONF_FILE=orc-nightly.conf
+[ -f ${EXE_PATH}/${CONF_FILE} ] && source ${EXE_PATH}/${CONF_FILE}
 [ -f ./${CONF_FILE} ] && source ./${CONF_FILE}
 [ -f /etc/${CONF_FILE} ] && source /etc/${CONF_FILE}
 

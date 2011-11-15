@@ -27,7 +27,7 @@ Supported options are:
     -l        Download the latest available nightly build (mutually exclusive with -u)
     -o        Exclude contents of <orc install dir>/distrib
     -p        Use non-standard port for connecting to source
-    -q				Be quiet — don't output progress info
+    -q        Be quiet - don't output progress info
     -r        Which build to download - requires an argument - the desired build e.g. TS-9
     -s        Download source - requires an argument - the host to download from
     -t        Include the Trade Monitor client app (excluded by default)

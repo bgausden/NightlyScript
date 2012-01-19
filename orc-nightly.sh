@@ -112,9 +112,10 @@ DEFAULT_LATEST_OR_SUCCESS="S" # Download last available (irrespective of whether
 EXCLUDE_LIST="" # Initialize the list of files/directories to exclude from the sync
 
 # Initialize array of paths to search for a file containing additional filename patterns to exclude from the sync
+#TODO When the link is relative, need to reconstruct the absolute path to the exe otherwise reading the excludes will fail (we'd look for the exclude file in a path relative to CWD).
 DEREF_LINK=$(readlink -n `which ${0}`)
 if [ -z ${DEREF_LINK} ] ; then
-	EXE_PATH=$(dirname {0})
+	EXE_PATH=$(dirname ${0})
 else
 	EXE_PATH=$(dirname ${DEREF_LINK})
 fi
@@ -452,10 +453,13 @@ set_exclude_file()
 	for i in ${EXCLUDE_FILE_PATHS[@]}; do
 		if [ -f ${i} ]; then
 			EXCLUDE_FILE="--exclude-from=${i}"
+			printf "\nLoading excludes from ${i}\n"
 			break
 		fi
 	done
-	printf "\nLoading excludes from ${i}\n"
+	if [ X${EXCLUDE_FILE} = X ] ; then
+		printf "\n No exclude file found. Will download entire release."
+	fi
 }
 
 set_include_list()

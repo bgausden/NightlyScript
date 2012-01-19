@@ -1,3 +1,7 @@
+#Unreadable conf samples on nightly builds
+*conf/feedproxyd/conf_sample*
+*conf/ofcbmfmgfd/conf_sample*
+*conf/ngmmgfd/conf_sample*
 *gz
 *.zip
 *.Z
@@ -47,8 +51,11 @@ lild.10
 mefffixd
 micexd
 ngmd
+ngmmgfd
 nymexd
 nyseamexoptionsd
+ofcbmfmgfd
+ofcicemgfd
 omd.174
 onechicagocmid
 onechicagod

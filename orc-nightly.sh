@@ -83,9 +83,13 @@ CHOWN=$(which chown) || fatal_exit "Unable to locate chown"
 # SUDO=$(which sudo) || fatal_exit "Unable to locate sudo"
 TR=$(which tr) || fatal_exit "Unable to locate tr"
 
+# Location of scripts to run after update
+# Should be at same level as the destination directory, typically under /orcreleases
+POSTUPDATE_DIR="postupdate.d"
+
 # Builds we know about - update this list as builds become (un)available
 unset VERSIONS
-VERSIONS=(GW TS-9 TS-HEAD GW-HEAD)
+VERSIONS=(GW-1 TS-PROD TS-HEAD GW-HEAD)
 
 # Known systems - need to add new platforms to this list as needed e.g. if we support Power going forward
 DARWIN="DARWIN"
@@ -545,6 +549,17 @@ esac
 unset TRANSFER_RESULT
 }
 
+postupdate()
+{
+	if [[ -d ${DEST_DIR}/../$POSTUPDATE_DIR/${BUILD}.d ]] ; then
+		for i in $(ls ${DEST_DIR}/../postupdate.d/${BUILD}.d) ; do
+			if [[ -x ${DEST_DIR}/../postupdate.d/${BUILD}.d/${i} ]] ; then
+				(${DEST_DIR}/../postupdate.d/${BUILD}.d/${i})
+			fi
+		done
+	fi
+}
+
 # main()
 parse_opts
 get_build
@@ -571,10 +586,7 @@ do
 	[[ ! -z ${SSH_PORT} ]] && SSH_PORT_OPTION="-p "${SSH_PORT}
 	download_build
 	eval_transfer_result
-	#TODO fix this
-	#if [ "${INCLUDE_TRADEMONITOR}" ] ; then	
-	#	download_extras
-	#fi
+	postupdate
 	update_permissions
 done
 

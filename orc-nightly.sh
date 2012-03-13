@@ -506,6 +506,12 @@ if [ ${SYSTEM} != ${DARWIN} ] ; then #On a Mac/PC there's no Orc user
 fi
 }
 
+delete_jars()
+{
+	printf "\nRemoving all JAR files from release.\n"
+	CMD="ssh ${SSH_IDENTITY} ${SSH_PORT_OPTION} ${SSH_LOGIN_OPTION} \"find ${DEST_DIR} -name \*.jar -exec rm -f {} \;\""
+}
+
 download_build()
 {
 	printf "\nRetrieving $DOWNLOAD_BUILD_DESC build from $SOURCE_HOST\n\n"
@@ -584,6 +590,7 @@ do
 	set_path
 	check_destination
 	[[ ! -z ${SSH_PORT} ]] && SSH_PORT_OPTION="-p "${SSH_PORT}
+	delete_jars
 	download_build
 	eval_transfer_result
 	postupdate

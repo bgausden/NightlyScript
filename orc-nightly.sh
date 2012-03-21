@@ -509,7 +509,8 @@ fi
 delete_jars()
 {
 	printf "\nRemoving all JAR files from release.\n"
-	CMD="ssh ${SSH_IDENTITY} ${SSH_PORT_OPTION} ${SSH_LOGIN_OPTION} \"find ${DEST_DIR} -name \*.jar -exec rm -f {} \;\""
+	CMD="find ${DEST_DIR}/lib/java/mg -name \*.jar -print -exec rm -f {} \;"
+	eval ${CMD}
 }
 
 download_build()

@@ -509,7 +509,7 @@ fi
 delete_jars()
 {
 	printf "\nRemoving all JAR files from release.\n"
-	CMD="find ${DEST_DIR}/lib/java/mg -name \*.jar -print -exec rm -f {} \;"
+	CMD="find ${DEST_DIR}/lib/java -name \*.jar -print -exec rm -f {} \;"
 	eval ${CMD}
 }
 

@@ -360,6 +360,10 @@ set_path()
 		DOWNLOAD_BUILD_DESC="last successful ${DOWNLOAD_BUILD}"
 	fi
 	case ${DOWNLOAD_BUILD} in
+		GW-?-*)
+			ROOT_DIR="/pub/release/${DOWNLOAD_BUILD}/${L_OR_S}/release/orc/"
+			DEST_DIR="/orcreleases/${DOWNLOAD_BUILD}"
+			;;
 		HEAD|TS*|GW*)
 			ROOT_DIR="/pub/builds/nightly/${DOWNLOAD_BUILD}/${L_OR_S}/release/orc/"
 			DEST_DIR="/orcreleases/${DOWNLOAD_BUILD}"
@@ -509,7 +513,7 @@ fi
 delete_jars()
 {
 	printf "\nRemoving all JAR files from release.\n"
-	CMD="find ${DEST_DIR}/lib/java -name \*.jar -print -exec rm -f {} \;"
+	CMD="find ${DEST_DIR}/lib/java/mg -name \*.jar -print -exec rm -f {} \;"
 	eval ${CMD}
 }
 
@@ -532,7 +536,7 @@ download_build()
 	# Note: Do not be tempted to add -m - this will delete the log folder from the system and the Orc binaries won't start
 	# Note also that all the escaped quotes around the -e option and the :$SOURCE are mandatory - don't be tempted to remove them.
 	#TODO pipe 2 > /dev/null
-	CMD="${RSYNC} -rlptzucO --rsync-path=rsync ${PROGRESS} ${DELETE_FILES} ${INCLUDE_LIST} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_PORT_OPTION} ${SSH_LOGIN_OPTION}\" \"${SOURCE_HOST}:${SOURCE}\" \"${DEST_DIR}\""
+	CMD="${RSYNC} -rlptzuO --rsync-path=rsync ${PROGRESS} ${DELETE_FILES} ${INCLUDE_LIST} ${EXCLUDE_LIST} ${EXCLUDE_FILE} -e \"ssh ${SSH_IDENTITY} ${SSH_PORT_OPTION} ${SSH_LOGIN_OPTION}\" \"${SOURCE_HOST}:${SOURCE}\" \"${DEST_DIR}\""
 	eval ${CMD}
 	TRANSFER_RESULT=$?
 }

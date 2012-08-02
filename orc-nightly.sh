@@ -360,7 +360,7 @@ set_path()
 		DOWNLOAD_BUILD_DESC="last successful ${DOWNLOAD_BUILD}"
 	fi
 	case ${DOWNLOAD_BUILD} in
-		GW-?-*)
+		GW-?-*|TS-*-*-*)
 			ROOT_DIR="/pub/release/${DOWNLOAD_BUILD}/${L_OR_S}/release/orc/"
 			DEST_DIR="/orcreleases/${DOWNLOAD_BUILD}"
 			;;

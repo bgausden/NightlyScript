@@ -222,14 +222,26 @@ do
 		r)
 		# Which build to download - requires argument
 		BUILD=""
+		MUNGED_OPTARG=${OPTARG//./-}
 		for i in ${VERSIONS[@]} ; do
-			if [ ${OPTARG} = ${i} ] ; then
-				BUILD=${OPTARG}
+			if [ ${MUNGED_OPTARG} = ${i} ] ; then
+				BUILD=${MUNGED_OPTARG}
 				break
 			fi
 		done
 		if [ -z ${BUILD} ] ; then
-			fatal_exit "${OPTARG} is not a valid build."
+			read -p "${MUNGED_OPTARG//./-} does not appear in orc-nightly.conf. Do you wish to attempt downloading this build? <y/N> " j
+			case ${j} in
+				y|Y)
+					BUILD=${MUNGED_OPTARG//./-}
+					;;
+				"")	
+					fatal_exit "No build selected."
+					;;
+				*)
+					fatal_exit "User cancelled download."
+					;;					
+			esac
 		fi
 		;;
 		s)

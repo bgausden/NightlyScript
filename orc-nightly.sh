@@ -381,7 +381,7 @@ set_path()
 	SOURCE=${ROOT_DIR}
 
 	if [ ${SYSTEM} = ${DARWIN} ] ; then 								# MacOSX only
-		if [ ${DOWNLOAD_BUILD} = "HEAD" ] || [[ ${DOWNLOAD_BUILD} =~ TS-* ]] || [ ${DOWNLOAD_BUILD} = "GW" ] ; then	# non-numeric releases don't get the Orc- prefix
+		if [ ${DOWNLOAD_BUILD} = "HEAD" ] || [[ ${DOWNLOAD_BUILD} =~ TS-* ]] || [[ ${DOWNLOAD_BUILD} =~ GW-* ]] ; then	# non-numeric releases don't get the Orc- prefix
 			DEST_DIR="/Applications/Orc/"${DOWNLOAD_BUILD}
 		else
 			DEST_DIR="/Applications/Orc/Orc-"${DOWNLOAD_BUILD}																					# numeric releases do get the Orc- prefix
@@ -394,7 +394,7 @@ set_path()
 	fi
 	#TODO Fix this so it works for all users
 	if [ ${SYSTEM} = ${WINDOWS} ] ; then 								# Win only
-		if [ ${DOWNLOAD_BUILD} = "HEAD" ] || [[ ${DOWNLOAD_BUILD} =~ TS-* ]] || [ ${DOWNLOAD_BUILD} = "GW" ] ; then	# non-numeric releases don't get the Orc- prefix
+		if [ ${DOWNLOAD_BUILD} = "HEAD" ] || [[ ${DOWNLOAD_BUILD} =~ TS-* ]] || [[ ${DOWNLOAD_BUILD} =~ GW-* ]] ; then	# non-numeric releases don't get the Orc- prefix
 			DEST_DIR="${USERPROFILE}\"/Orc/"${DOWNLOAD_BUILD}\"
 		else
 			DEST_DIR="\"/cygdrive/c/Users/jeanm/Orc/Orc-"${DOWNLOAD_BUILD}\"																					# numeric releases do get the Orc- prefix

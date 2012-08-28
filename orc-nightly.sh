@@ -222,14 +222,26 @@ do
 		r)
 		# Which build to download - requires argument
 		BUILD=""
+		MUNGED_OPTARG=${OPTARG//./-}
 		for i in ${VERSIONS[@]} ; do
-			if [ ${OPTARG} = ${i} ] ; then
-				BUILD=${OPTARG}
+			if [ ${MUNGED_OPTARG} = ${i} ] ; then
+				BUILD=${MUNGED_OPTARG}
 				break
 			fi
 		done
 		if [ -z ${BUILD} ] ; then
-			fatal_exit "${OPTARG} is not a valid build."
+			read -p "${MUNGED_OPTARG//./-} does not appear in orc-nightly.conf. Do you wish to attempt downloading this build? <y/N> " j
+			case ${j} in
+				y|Y)
+					BUILD=${MUNGED_OPTARG//./-}
+					;;
+				"")	
+					fatal_exit "No build selected."
+					;;
+				*)
+					fatal_exit "User cancelled download."
+					;;					
+			esac
 		fi
 		;;
 		s)
@@ -360,7 +372,7 @@ set_path()
 		DOWNLOAD_BUILD_DESC="last successful ${DOWNLOAD_BUILD}"
 	fi
 	case ${DOWNLOAD_BUILD} in
-		GW-?-*)
+		GW-?-*|TS-*-*-*)
 			ROOT_DIR="/pub/release/${DOWNLOAD_BUILD}/${L_OR_S}/release/orc/"
 			DEST_DIR="/orcreleases/${DOWNLOAD_BUILD}"
 			;;
@@ -381,7 +393,7 @@ set_path()
 	SOURCE=${ROOT_DIR}
 
 	if [ ${SYSTEM} = ${DARWIN} ] ; then 								# MacOSX only
-		if [ ${DOWNLOAD_BUILD} = "HEAD" ] || [[ ${DOWNLOAD_BUILD} =~ TS-* ]] || [ ${DOWNLOAD_BUILD} = "GW" ] ; then	# non-numeric releases don't get the Orc- prefix
+		if [ ${DOWNLOAD_BUILD} = "HEAD" ] || [[ ${DOWNLOAD_BUILD} =~ TS-* ]] || [[ ${DOWNLOAD_BUILD} =~ GW-* ]] ; then	# non-numeric releases don't get the Orc- prefix
 			DEST_DIR="/Applications/Orc/"${DOWNLOAD_BUILD}
 		else
 			DEST_DIR="/Applications/Orc/Orc-"${DOWNLOAD_BUILD}																					# numeric releases do get the Orc- prefix
@@ -394,7 +406,7 @@ set_path()
 	fi
 	#TODO Fix this so it works for all users
 	if [ ${SYSTEM} = ${WINDOWS} ] ; then 								# Win only
-		if [ ${DOWNLOAD_BUILD} = "HEAD" ] || [[ ${DOWNLOAD_BUILD} =~ TS-* ]] || [ ${DOWNLOAD_BUILD} = "GW" ] ; then	# non-numeric releases don't get the Orc- prefix
+		if [ ${DOWNLOAD_BUILD} = "HEAD" ] || [[ ${DOWNLOAD_BUILD} =~ TS-* ]] || [[ ${DOWNLOAD_BUILD} =~ GW-* ]] ; then	# non-numeric releases don't get the Orc- prefix
 			DEST_DIR="${USERPROFILE}\"/Orc/"${DOWNLOAD_BUILD}\"
 		else
 			DEST_DIR="\"/cygdrive/c/Users/jeanm/Orc/Orc-"${DOWNLOAD_BUILD}\"																					# numeric releases do get the Orc- prefix

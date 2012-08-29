@@ -8,7 +8,9 @@
 
 fatal_exit()
 {
-	[ -n "${1:+x}" ] && printf "%s\n${1} Aborting.\n\n"
+	#if $i is null/unset, use the string "Unspecified error" instead.
+	# http://tldp.org/LDP/abs/html/parameter-substitution.html
+	printf "%s\n${1:-"Unspecified error."} Aborting.\n\n"	
 	exit 1
 }
 
@@ -576,6 +578,7 @@ postupdate()
 }
 
 # main()
+
 parse_opts
 get_build
 if [[ ${HAVE_OPTS} = false ]] ; then

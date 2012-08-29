@@ -295,7 +295,7 @@ get_delete()
 		DELETE_FILES=''
 	else
 		case ${i} in 
-			a|A)
+			a|A|k|K)
 			# Secret option. Deletes files on destination which have been excluded from sync
 			# Generally not needed (nor desired) but handy when trimming the contents of the
 			# destination to match the source (taking into account excludes)

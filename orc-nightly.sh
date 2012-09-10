@@ -8,7 +8,9 @@
 
 fatal_exit()
 {
-	[ -n "${1:+x}" ] && printf "%s\n${1} Aborting.\n\n"
+	#if $i is null/unset, use the string "Unspecified error" instead.
+	# http://tldp.org/LDP/abs/html/parameter-substitution.html
+	printf "%s\n${1:-"Unspecified error."} Aborting.\n\n"	
 	exit 1
 }
 
@@ -25,7 +27,6 @@ Supported options are:
     -d        Delete files which do not exist on the server but exist on the client system
     -h        Help
     -l        Download the latest available nightly build (mutually exclusive with -u)
-    -o        Exclude contents of <orc install dir>/distrib
     -p        Use non-standard port for connecting to source
     -q        Be quiet - don't output progress info
     -r        Which build to download - requires an argument - the desired build e.g. TS-9
@@ -128,7 +129,6 @@ fi
 EXCLUDE_FILE_PATHS=("/etc/orc-nightly-exclude" ${EXE_PATH}"/orc-nightly-exclude")
 
 EXCLUDE_APPS=""  # Set EXCLUDE_APPS to a non-null value (e.g. YES) to exclude the Orc apps from the d/l. (Useful for VMs)
-EXCLUDE_DISTRIB=""
 EXCLUDE_PDF=""
 EXCLUDE_WIN=""
 INCLUDE_TRADEMONITOR=""
@@ -206,10 +206,6 @@ do
 		l)
 		# Download latest Nightly
 		LATEST_OR_SUCCESS=L
-		;;
-		o)
-		#Exclude contents of distrib e.g. orc monitor
-		EXCLUDE_DISTRIB=1
 		;;
 		p)
 		# Use a non-standard port to connect to the source
@@ -299,7 +295,7 @@ get_delete()
 		DELETE_FILES=''
 	else
 		case ${i} in 
-			a|A)
+			a|A|k|K)
 			# Secret option. Deletes files on destination which have been excluded from sync
 			# Generally not needed (nor desired) but handy when trimming the contents of the
 			# destination to match the source (taking into account excludes)
@@ -440,7 +436,6 @@ set_exclude_list()
 	CVS="--exclude=\*/CVS/"					# CVS
 	CYGWIN="--exclude=i386-pc-cygwin/"			# Cygwin
 	LINUX32="--exclude=i386-unknown-linux/"			# 32bit Linux
-	DISTRIB="--exclude=distrib/"				# Orc Monitor
 	LOGS="--exclude=log/\*"					# Logs
 	APPS="--exclude=/apps/"					# Apps
 	PDF="--exclude=\*.pdf"					# PDF Documentation
@@ -461,7 +456,6 @@ set_exclude_list()
 	[ ${SYSTEM} = ${SUNOS} ] && [ ${ISA} != ${I386} ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${X86_64_SUN}"
 	
 	[ "${EXCLUDE_APPS}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${APPS}"
-	[ "${EXCLUDE_DISTRIB}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${DISTRIB}"
 	[ "${EXCLUDE_PDF}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${PDF}"
 	[ "${EXCLUDE_WIN}" ] && EXCLUDE_LIST=${EXCLUDE_LIST}" ${WINDOWS_EXES}"
 }
@@ -584,6 +578,7 @@ postupdate()
 }
 
 # main()
+
 parse_opts
 get_build
 if [[ ${HAVE_OPTS} = false ]] ; then

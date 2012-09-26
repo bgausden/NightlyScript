@@ -34,6 +34,7 @@ Supported options are:
     -t        Include the Trade Monitor client app (excluded by default)
     -u        Download the last successful nightly build (mutually exclusive with -l)
     -w        Exclude windows components e.g. exes and dlls
+    -x        Override default source paths for builds e.g. /orcreleases
 	EOF
 }
 
@@ -173,7 +174,7 @@ fi
 parse_opts()
 {
 	# Run through any arguments to make sure they're sane
-	while getopts ":abcdhlkp:oqr:s:twu" OPTION ${CMD_LINE}
+	while getopts ":abcdhlkp:oqr:s:twux:" OPTION ${CMD_LINE}
 do
 	case ${OPTION} in
 		a)
@@ -256,6 +257,10 @@ do
 		# Download last successful Nightly build
 		LATEST_OR_SUCCESS=S
 		;;
+    x)
+      # Alternate source path
+      ALT_SOURCE_PATH=${OPTARG}
+      ;; 
 		*)
 		usage
 		fatal_exit "%s\nUnknown or malformed option: \"${OPTARG}\""
@@ -367,23 +372,48 @@ set_path()
 		L_OR_S="success"
 		DOWNLOAD_BUILD_DESC="last successful ${DOWNLOAD_BUILD}"
 	fi
-	case ${DOWNLOAD_BUILD} in
-		GW-?-*|TS-*-*-*)
-			ROOT_DIR="/pub/release/${DOWNLOAD_BUILD}/${L_OR_S}/release/orc/"
-			DEST_DIR="/orcreleases/${DOWNLOAD_BUILD}"
-			;;
-		HEAD|TS*|GW*)
-			ROOT_DIR="/pub/builds/nightly/${DOWNLOAD_BUILD}/${L_OR_S}/release/orc/"
-			DEST_DIR="/orcreleases/${DOWNLOAD_BUILD}"
-			;;
-		*MIN)
-			ROOT_DIR="/pub/builds/nightly/${DOWNLOAD_BUILD}/${L_OR_S}/release/gateways/"
-			DEST_DIR="/orcreleases/${DOWNLOAD_BUILD}"
-			;;
-		*)
-			ROOT_DIR="/pub/builds/nightly/Orc-${DOWNLOAD_BUILD/\./-}/${L_OR_S}/release/orc/" 
-			DEST_DIR="/orcreleases/orc-${DOWNLOAD_BUILD}"
-			;;
+
+  if [[ $ALT_SOURCE_PATH ]] ; then
+    RELEASE_PATH="/${ALT_SOURCE_PATH}"
+    NIGHTLY_PATH="/${ALT_SOURCE_PATH}"
+  else
+    RELEASE_PATH="/pub/release/"
+    NIGHTLY_PATH="/pub/builds/nightly"
+  fi
+
+  case ${DOWNLOAD_BUILD} in
+	GW-?-*|TS-*-*-*)
+	  if [[ $ALT_SOURCE_PATH ]] ; then
+		  ROOT_DIR="${RELEASE_PATH}/${DOWNLOAD_BUILD}/"
+	  else
+		  ROOT_DIR="${RELEASE_PATH}/${DOWNLOAD_BUILD}/${L_OR_S}/release/orc/"
+	  fi
+	  DEST_DIR="/orcreleases/${DOWNLOAD_BUILD}"
+	  ;;
+	HEAD|TS*|GW*)
+		if [[ $ALT_SOURCE_PATH ]] ; then
+			ROOT_DIR="/${NIGHTLY_PATH}/${DOWNLOAD_BUILD}/"
+		else
+			ROOT_DIR="${NIGHTLY_PATH}/${DOWNLOAD_BUILD}/${L_OR_S}/release/orc/"
+				fi
+				DEST_DIR="/orcreleases/${DOWNLOAD_BUILD}"
+				;;
+	*MIN)
+		if [[ $ALT_SOURCE_PATH ]] ; then
+			ROOT_DIR="${NIGHTLY_PATH}/${DOWNLOAD_BUILD}/"
+		else
+			ROOT_DIR="${NIGHTLY_PATH}/${DOWNLOAD_BUILD}/${L_OR_S}/release/gateways/"
+				fi
+				DEST_DIR="/orcreleases/${DOWNLOAD_BUILD}"
+				;;
+	*)
+		if [[ $ALT_SOURCE_PATH ]] ; then
+			ROOT_DIR="${NIGHTLY_PATH}/Orc-${DOWNLOAD_BUILD/\./-}/${L_OR_S}/release/orc/" 
+		else
+			ROOT_DIR="${NIGHTLY_PATH}/Orc-${DOWNLOAD_BUILD/\./-}/${L_OR_S}/release/orc/" 
+				fi
+				DEST_DIR="/orcreleases/orc-${DOWNLOAD_BUILD}"
+				;;
 	esac
 	
 	SOURCE=${ROOT_DIR}

@@ -53,6 +53,7 @@ gam2*
 gamstd*
 *gcc46*
 hfd
+*HSVF*
 interactived
 ised*
 libESPD.so
@@ -62,7 +63,6 @@ libchipolino.so
 libdifxgw.so
 libise*
 liblsemdgw.so
-libmpgw.so
 mefffixd
 micexd
 ngmd
@@ -76,6 +76,7 @@ onechicagocmid
 onechicagod
 pcqetix
 puretradingd
+*sail*
 saxessd.500
 setsd*
 sibe*
@@ -88,3 +89,5 @@ usoptionsd
 *wse*
 xqsd
 zsed
+*iscftr*
+*smq*

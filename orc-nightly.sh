@@ -424,11 +424,11 @@ set_path()
 		else
 			DEST_DIR="/Applications/Orc/Orc-"${DOWNLOAD_BUILD}																					# numeric releases do get the Orc- prefix
 		fi
-		SOURCE="	${ROOT_DIR}/apps/ \
-		${ROOT_DIR}/lib/liquidator.jar \
-		${ROOT_DIR}/lib/lprofiler.jar \
-		${ROOT_DIR}/doc \
-		${ROOT_DIR}/sdk "
+		#SOURCE="	${ROOT_DIR}/apps/ \
+		SOURCE="    ${ROOT_DIR}/lib/liquidator.jar \
+			    ${ROOT_DIR}/lib/lprofiler.jar \
+			    ${ROOT_DIR}/doc \
+			    ${ROOT_DIR}/sdk "
 	fi
 	#TODO Fix this so it works for all users
 	if [ ${SYSTEM} = ${WINDOWS} ] ; then 								# Win only

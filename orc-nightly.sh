@@ -382,7 +382,7 @@ set_path()
   fi
 
   case ${DOWNLOAD_BUILD} in
-	GW-?-*|TS-*-*-*)
+	GW-?-*|TS-*-*-*|LTS-*-*-*)
 	  if [[ $ALT_SOURCE_PATH ]] ; then
 		  ROOT_DIR="${RELEASE_PATH}/${DOWNLOAD_BUILD}/"
 	  else

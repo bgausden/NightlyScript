@@ -1,2 +1,6 @@
 *~
 .AppleDouble
+.orc-nightly.sh.swp
+.gitignore
+.DS_Store
+.orc-nightly.sh.swo
